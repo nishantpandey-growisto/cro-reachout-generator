@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRO Reach-Out Generator | Growisto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --color-primary: #367588;
+            --color-primary-dark: #2a5d6d;
+            --color-secondary: #b8dbd9;
+            --color-secondary-light: #e8f4f3;
+            --color-tertiary: #e35d34;
+            --color-tertiary-dark: #c94d28;
+            --color-text-dark: #1d1d20;
+            --color-text-muted: #5a5a5f;
+            --color-text-light: #ffffff;
+            --color-bg-primary: #ffffff;
+            --color-bg-secondary: #f8f9fa;
+            --color-bg-tertiary: #f0f4f5;
+            --color-success: #10b981;
+            --color-success-bg: #d1fae5;
+            --color-warning: #f59e0b;
+            --color-warning-bg: #fef3c7;
+            --color-danger: #ef4444;
+            --color-danger-bg: #fee2e2;
+            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* COVER PAGE */
+        .cover-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 2000; text-align: center; padding: 40px;
+        }
+        .cover-page.hidden { display: none; }
+        .cover-logo { margin-bottom: 60px; }
+        .cover-logo img { height: 60px; width: auto; }
+        .cover-content { max-width: 600px; }
+        .cover-label {
+            display: inline-block; background: rgba(255,255,255,0.15); color: var(--color-text-light);
+            padding: 8px 20px; border-radius: 30px; font-size: 12px; font-weight: 500;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; backdrop-filter: blur(10px);
+        }
+        .cover-title { color: var(--color-text-light); font-size: 38px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+        .cover-subtitle { color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 400; margin-bottom: 50px; }
+        .cover-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--color-text-light); color: var(--color-primary);
+            padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600;
+            text-decoration: none; cursor: pointer; border: none;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            font-family: var(--font-family);
+        }
+        .cover-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .cover-footer { position: absolute; bottom: 40px; color: rgba(255,255,255,0.5); font-size: 12px; }
+
+        /* LOGIN SCREEN */
+        .login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            display: none; justify-content: center; align-items: center; z-index: 1500;
+        }
+        .login-screen.visible { display: flex; }
+        .login-box {
+            background: var(--color-bg-primary); padding: 50px; border-radius: 24px;
+            box-shadow: var(--shadow-xl); text-align: center; max-width: 420px; width: 90%;
+        }
+        .login-box .login-logo { margin-bottom: 30px; }
+        .login-box .login-logo img { height: 40px; }
+        .login-box h1 { color: var(--color-text-dark); margin-bottom: 8px; font-size: 24px; font-weight: 600; }
+        .login-box .subtitle { color: var(--color-text-muted); margin-bottom: 30px; font-size: 14px; }
+        .login-box input {
+            width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px;
+            font-size: 16px; margin-bottom: 20px; font-family: var(--font-family);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .login-box input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(54,117,136,0.1); }
+        .login-box button {
+            width: 100%; padding: 16px; background: var(--color-primary); color: var(--color-text-light);
+            border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: background var(--transition-fast), transform var(--transition-fast);
+            font-family: var(--font-family);
+        }
+        .login-box button:hover { background: var(--color-primary-dark); transform: translateY(-2px); }
+        .error-message { color: var(--color-danger); margin-top: 15px; display: none; font-size: 14px; }
+
+        /* MAIN APP */
+        .main-app { display: none; min-height: 100vh; }
+        .main-app.visible { display: block; }
+
+        /* HEADER */
+        .app-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: var(--color-text-light); padding: 20px 0; position: sticky; top: 0; z-index: 100;
+        }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-logo img { height: 32px; }
+        .header-title { font-size: 18px; font-weight: 600; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .header-btn {
+            background: rgba(255,255,255,0.15); color: var(--color-text-light); border: none;
+            padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: var(--font-family); transition: background var(--transition-fast);
+        }
+        .header-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* DASHBOARD */
+        .dashboard { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+        .dashboard-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .dashboard-subtitle { color: var(--color-text-muted); font-size: 15px; margin-bottom: 40px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+
+        .flow-card {
+            background: var(--color-bg-primary); border-radius: 16px; padding: 32px;
+            box-shadow: var(--shadow-md); cursor: pointer; border: 2px solid transparent;
+            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+        }
+        .flow-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--color-primary); }
+        .flow-card-icon { font-size: 36px; margin-bottom: 16px; }
+        .flow-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .flow-card p { color: var(--color-text-muted); font-size: 14px; line-height: 1.5; }
+
+        /* SECTION CONTAINERS */
+        .section { display: none; max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+        .section.visible { display: block; }
+        .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+        .back-btn {
+            background: var(--color-bg-primary); border: 2px solid #e5e7eb; border-radius: 10px;
+            padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
+            font-family: var(--font-family); transition: all var(--transition-fast);
+        }
+        .back-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .section-title { font-size: 24px; font-weight: 700; }
+
+        /* TABS */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--color-bg-secondary); padding: 4px; border-radius: 12px; overflow-x: auto; }
+        .tab-btn {
+            padding: 10px 20px; border: none; background: transparent; border-radius: 8px;
+            font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-family);
+            color: var(--color-text-muted); white-space: nowrap; transition: all var(--transition-fast);
+        }
+        .tab-btn.active { background: var(--color-bg-primary); color: var(--color-primary); box-shadow: var(--shadow-sm); font-weight: 600; }
+        .tab-btn:hover:not(.active) { color: var(--color-text-dark); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* FORM ELEMENTS */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--color-text-dark); }
+        .form-hint { font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px;
+            font-size: 14px; font-family: var(--font-family);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(54,117,136,0.1);
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        /* CHECKBOXES */
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .checkbox-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+            background: var(--color-bg-primary); border: 1px solid #e5e7eb; border-radius: 8px;
+            cursor: pointer; transition: all var(--transition-fast);
+        }
+        .checkbox-item:hover { border-color: var(--color-primary); background: var(--color-secondary-light); }
+        .checkbox-item.checked { border-color: var(--color-primary); background: var(--color-secondary-light); }
+        .checkbox-item input[type="checkbox"] {
+            width: 18px; height: 18px; margin-top: 2px; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0;
+        }
+        .checkbox-item label { font-size: 13px; cursor: pointer; line-height: 1.4; }
+
+        /* BUTTONS */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--color-primary); color: var(--color-text-light);
+            padding: 14px 32px; border-radius: 12px; font-size: 15px; font-weight: 600;
+            border: none; cursor: pointer; font-family: var(--font-family);
+            transition: all var(--transition-fast);
+        }
+        .btn-primary:hover { background: var(--color-primary-dark); transform: translateY(-2px); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--color-bg-primary); color: var(--color-primary);
+            padding: 14px 32px; border-radius: 12px; font-size: 15px; font-weight: 600;
+            border: 2px solid var(--color-primary); cursor: pointer; font-family: var(--font-family);
+            transition: all var(--transition-fast);
+        }
+        .btn-secondary:hover { background: var(--color-secondary-light); }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 24px; }
+
+        /* OUTPUT SECTION */
+        .output-container { display: none; }
+        .output-container.visible { display: block; }
+
+        .output-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .output-panel {
+            background: var(--color-bg-primary); border-radius: 16px; padding: 24px;
+            box-shadow: var(--shadow-md); position: relative;
+        }
+        .output-panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;
+        }
+        .output-panel-title { font-size: 16px; font-weight: 600; }
+        .output-panel-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .badge-email { background: #dbeafe; color: #1d4ed8; }
+        .badge-whatsapp { background: #d1fae5; color: #065f46; }
+
+        .output-text {
+            font-size: 13px; line-height: 1.7; color: var(--color-text-dark);
+            white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto;
+            padding: 16px; background: var(--color-bg-secondary); border-radius: 10px;
+        }
+        .output-subject {
+            font-size: 14px; font-weight: 600; padding: 10px 16px;
+            background: #f0f4f5; border-radius: 8px; margin-bottom: 12px;
+        }
+
+        .copy-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--color-primary); color: var(--color-text-light);
+            padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            border: none; cursor: pointer; font-family: var(--font-family);
+            transition: all var(--transition-fast); margin-top: 12px;
+        }
+        .copy-btn:hover { background: var(--color-primary-dark); }
+        .copy-btn.copied { background: var(--color-success); }
+
+        /* FOLLOW-UP CARDS */
+        .followup-card {
+            background: var(--color-bg-primary); border-radius: 16px; padding: 24px;
+            box-shadow: var(--shadow-md); margin-bottom: 20px; border-left: 4px solid var(--color-primary);
+        }
+        .followup-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .followup-card-title { font-size: 16px; font-weight: 600; }
+        .followup-timing {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; background: var(--color-warning-bg); color: #92400e;
+        }
+        .followup-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .followup-panel { padding: 12px; background: var(--color-bg-secondary); border-radius: 8px; }
+        .followup-panel-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-muted); margin-bottom: 8px; }
+        .followup-text { font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+
+        /* NAV PROGRESS */
+        .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; background: var(--color-text-dark);
+            color: var(--color-text-light); padding: 14px 24px; border-radius: 12px;
+            font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg);
+            transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 9999;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* BRAND HISTORY SIDEBAR */
+        .dashboard-layout { display: grid; grid-template-columns: 1fr 340px; gap: 32px; }
+        .brand-sidebar {
+            background: var(--color-bg-primary); border-radius: 16px; padding: 24px;
+            box-shadow: var(--shadow-md); max-height: calc(100vh - 200px); overflow-y: auto;
+        }
+        .brand-sidebar-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .brand-sidebar-subtitle { font-size: 12px; color: var(--color-text-muted); margin-bottom: 16px; }
+        .brand-sidebar-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+        .brand-sidebar-btn {
+            flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px;
+            font-weight: 500; cursor: pointer; font-family: var(--font-family); background: var(--color-bg-secondary);
+            text-align: center; transition: all var(--transition-fast);
+        }
+        .brand-sidebar-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .brand-list-empty { text-align: center; padding: 24px; color: var(--color-text-muted); font-size: 13px; }
+        .brand-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px;
+            cursor: pointer; transition: all var(--transition-fast);
+        }
+        .brand-list-item:hover { border-color: var(--color-primary); background: var(--color-secondary-light); }
+        .brand-list-name { font-size: 14px; font-weight: 600; }
+        .brand-list-meta { font-size: 11px; color: var(--color-text-muted); }
+        .brand-status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-active { background: var(--color-success-bg); color: #065f46; }
+        .status-won { background: #dbeafe; color: #1d4ed8; }
+        .status-lost { background: var(--color-danger-bg); color: #991b1b; }
+        .status-paused { background: var(--color-warning-bg); color: #92400e; }
+
+        /* SETTINGS PANEL */
+        .settings-section { background: var(--color-bg-primary); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-md); margin-bottom: 24px; }
+        .settings-section h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .cs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .cs-table th { text-align: left; padding: 10px 12px; background: var(--color-bg-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); }
+        .cs-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        .cs-table td input, .cs-table td textarea { width: 100%; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; font-family: var(--font-family); }
+        .cs-table td textarea { min-height: 50px; resize: vertical; }
+        .cs-actions { display: flex; gap: 4px; }
+        .cs-action-btn { padding: 4px 10px; border-radius: 6px; border: none; font-size: 11px; cursor: pointer; font-family: var(--font-family); }
+        .cs-save { background: var(--color-primary); color: white; }
+        .cs-delete { background: var(--color-danger); color: white; }
+        .client-name-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .client-tag {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+            background: var(--color-secondary-light); border-radius: 20px; font-size: 13px;
+        }
+        .client-tag-remove { cursor: pointer; font-weight: 700; color: var(--color-danger); font-size: 16px; line-height: 1; }
+
+        /* UPLOAD ZONE */
+        .upload-zone {
+            border: 3px dashed #d1d5db; border-radius: 16px; padding: 60px 40px;
+            text-align: center; cursor: pointer; transition: all var(--transition-base);
+            background: var(--color-bg-primary);
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--color-primary); background: var(--color-secondary-light);
+        }
+        .upload-zone-icon { font-size: 48px; margin-bottom: 16px; }
+        .upload-zone-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .upload-zone-hint { color: var(--color-text-muted); font-size: 14px; }
+        .upload-zone input[type="file"] { display: none; }
+
+        .upload-progress {
+            display: none; background: var(--color-bg-primary); border-radius: 16px;
+            padding: 32px; text-align: center; box-shadow: var(--shadow-md);
+        }
+        .upload-progress.visible { display: block; }
+        .progress-bar-track { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; margin: 16px 0; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--color-primary); border-radius: 4px; transition: width 0.3s ease; width: 0%; }
+        .progress-status { font-size: 14px; color: var(--color-text-muted); }
+
+        .extracted-summary {
+            display: none; background: var(--color-success-bg); border: 1px solid var(--color-success);
+            border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;
+        }
+        .extracted-summary.visible { display: block; }
+        .extracted-summary h4 { color: #065f46; font-size: 14px; margin-bottom: 8px; }
+        .extracted-summary ul { list-style: none; padding: 0; }
+        .extracted-summary li { font-size: 13px; color: #065f46; padding: 2px 0; }
+        .extracted-summary li::before { content: "\2713 "; font-weight: 700; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-layout { grid-template-columns: 1fr; }
+            .output-panels, .followup-panels { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .checkbox-grid { grid-template-columns: 1fr; }
+            .cover-title { font-size: 28px; }
+            .tabs { flex-wrap: nowrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page" id="coverPage">
+    <div class="cover-logo"><img src="growisto-logo-white.png" alt="Growisto"></div>
+    <div class="cover-content">
+        <div class="cover-label">Internal Tool</div>
+        <h1 class="cover-title">CRO Reach-Out Generator</h1>
+        <p class="cover-subtitle">Generate personalized CRO outreach messages from audit findings</p>
+        <button class="cover-btn" onclick="showLogin()">
+            Get Started
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+    </div>
+    <div class="cover-footer">Growisto &copy; 2026 &mdash; All Rights Reserved</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <div class="login-logo"><img src="growisto-logo.png" alt="Growisto"></div>
+        <h1>Welcome</h1>
+        <p class="subtitle">Enter password to access the tool</p>
+        <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter')checkPassword()">
+        <button onclick="checkPassword()">Access Tool</button>
+        <p class="error-message" id="errorMsg">Incorrect password. Try again.</p>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="main-app" id="mainApp">
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div class="header-logo"><img src="growisto-logo-white.png" alt="Growisto"></div>
+                <div class="header-title">CRO Reach-Out Generator</div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="showDashboard()">Dashboard</button>
+                <button class="header-btn" onclick="showSettings()">Settings</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <div class="section dashboard visible" id="dashboard">
+        <h1 class="dashboard-title">What would you like to do?</h1>
+        <p class="dashboard-subtitle">Choose a flow to get started with generating your outreach messages.</p>
+        <div class="dashboard-layout">
+            <div>
+                <div class="dashboard-grid">
+                    <div class="flow-card" onclick="showSection('flowA')">
+                        <div class="flow-card-icon">&#128196;</div>
+                        <h3>I Have an Audit Report</h3>
+                        <p>Upload a PDF or PPTX audit report. We'll auto-extract findings and generate personalized outreach messages.</p>
+                    </div>
+                    <div class="flow-card" onclick="showSection('flowB')">
+                        <div class="flow-card-icon">&#9997;&#65039;</div>
+                        <h3>Manual Entry</h3>
+                        <p>Enter CRO findings manually using our structured checklist. Perfect when you don't have a formal report yet.</p>
+                    </div>
+                    <div class="flow-card" onclick="showSection('followUp')">
+                        <div class="flow-card-icon">&#128260;</div>
+                        <h3>Continue a Conversation</h3>
+                        <p>Select a brand from history, provide conversation context, and get follow-up message suggestions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="brand-sidebar">
+                <div class="brand-sidebar-title">Brand History</div>
+                <div class="brand-sidebar-subtitle">Saved brands from previous sessions</div>
+                <div class="brand-sidebar-actions">
+                    <button class="brand-sidebar-btn" onclick="importBrandJSON()">Import</button>
+                    <button class="brand-sidebar-btn" onclick="exportAllData()">Export All</button>
+                </div>
+                <div id="brandList">
+                    <div class="brand-list-empty" id="brandListEmpty">No brands saved yet. Generate messages to save a brand.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOW A: Upload Report -->
+    <div class="section" id="flowA">
+        <div class="section-header">
+            <button class="back-btn" onclick="showDashboard()">&larr; Back</button>
+            <h2 class="section-title">Upload Audit Report</h2>
+        </div>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept=".pdf,.pptx,.ppt" onchange="handleFileUpload(event)">
+            <div class="upload-zone-icon">&#128196;</div>
+            <div class="upload-zone-title">Drop your PDF or PPTX file here</div>
+            <div class="upload-zone-hint">or click to browse &mdash; supports .pdf and .pptx files</div>
+        </div>
+
+        <!-- Progress -->
+        <div class="upload-progress" id="uploadProgress">
+            <div style="font-size:32px;margin-bottom:12px;">&#9881;&#65039;</div>
+            <div style="font-weight:600;margin-bottom:4px;" id="progressTitle">Parsing document...</div>
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBar"></div></div>
+            <div class="progress-status" id="progressStatus">Extracting text from pages...</div>
+        </div>
+
+        <!-- Extraction Summary -->
+        <div class="extracted-summary" id="extractedSummary">
+            <h4>Auto-Extracted from Report</h4>
+            <ul id="extractedList"></ul>
+        </div>
+
+        <!-- Verification Form (appears after extraction) -->
+        <div id="verifyForm" style="display:none;">
+            <h3 style="margin-bottom:20px;">Verify & Edit Extracted Findings</h3>
+            <p class="form-hint" style="margin-bottom:24px;">We auto-filled what we could from your report. Please verify and adjust before generating messages.</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input class="form-input" type="text" id="va_brandName" placeholder="e.g., Re'equil">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Website URL</label>
+                    <input class="form-input" type="text" id="va_websiteUrl" placeholder="e.g., reequil.com">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Recipient Name</label>
+                    <input class="form-input" type="text" id="va_recipientName" placeholder="e.g., Rahul">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sender Name</label>
+                    <input class="form-input" type="text" id="va_senderName" placeholder="e.g., Naman">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mobile PageSpeed Score</label>
+                    <input class="form-input" type="number" id="va_mobilePS" placeholder="e.g., 34" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Desktop PageSpeed Score</label>
+                    <input class="form-input" type="number" id="va_desktopPS" placeholder="e.g., 65" min="0" max="100">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Industry</label>
+                <select class="form-select" id="va_industry">
+                    <option value="">Select industry...</option>
+                    <option value="skincare">Skincare / Beauty</option>
+                    <option value="fashion">Fashion / Apparel</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="health">Health & Wellness</option>
+                    <option value="food">Food & Beverages</option>
+                    <option value="home">Home & Living</option>
+                    <option value="jewelry">Jewelry & Accessories</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <h4 style="margin:24px 0 12px;">Detected CRO Issues</h4>
+            <p class="form-hint" style="margin-bottom:16px;">Pre-checked based on report content. Uncheck any that don't apply, or check additional issues.</p>
+            <div class="checkbox-grid" id="va_checkboxes">
+                <div class="checkbox-item"><input type="checkbox" id="va_no_sticky_atc" value="no_sticky_atc"><label for="va_no_sticky_atc">No sticky Add to Cart on mobile</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_buy_now" value="no_buy_now"><label for="va_no_buy_now">No "Buy Now" CTA</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_wishlist" value="no_wishlist"><label for="va_no_wishlist">No "Add to Wishlist" option</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_recently_viewed" value="no_recently_viewed"><label for="va_no_recently_viewed">No "Recently Viewed" section</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_product_badges" value="no_product_badges"><label for="va_no_product_badges">No product badges (Bestseller/New)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_notify_me" value="no_notify_me"><label for="va_no_notify_me">No "Notify Me" on sold-out items</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_quick_add" value="no_quick_add"><label for="va_no_quick_add">No quick-add on collection pages</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_cross_sell" value="no_cross_sell"><label for="va_no_cross_sell">No cross-sell/upsell on cart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_shipping_bar" value="no_shipping_bar"><label for="va_no_shipping_bar">No free shipping progress bar</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_trust_badges" value="no_trust_badges"><label for="va_no_trust_badges">No trust badges visible</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_social_proof" value="no_social_proof"><label for="va_no_social_proof">No social proof (reviews/logos)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_reviews_pdp" value="no_reviews_pdp"><label for="va_no_reviews_pdp">No customer reviews section</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_image_zoom" value="no_image_zoom"><label for="va_no_image_zoom">No image zoom</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_product_video" value="no_product_video"><label for="va_no_product_video">No product video</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_ga4" value="no_ga4"><label for="va_no_ga4">GA4 not installed</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_ecom_events" value="no_ecom_events"><label for="va_no_ecom_events">GA4 ecommerce events not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_multiple_h1" value="multiple_h1"><label for="va_multiple_h1">Multiple H1 tags</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_product_schema" value="no_product_schema"><label for="va_no_product_schema">No Product schema (JSON-LD)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_meta_desc" value="no_meta_desc"><label for="va_no_meta_desc">Missing/poor meta descriptions</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_poor_cwv" value="poor_cwv"><label for="va_poor_cwv">Poor Core Web Vitals</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_checkout_friction" value="checkout_friction"><label for="va_checkout_friction">Checkout friction</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_urgency_pdp" value="no_urgency_pdp"><label for="va_no_urgency_pdp">No urgency elements on PDP</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_size_chart" value="no_size_chart"><label for="va_no_size_chart">No size chart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="va_no_sticky_nav" value="no_sticky_nav"><label for="va_no_sticky_nav">No sticky navigation</label></div>
+            </div>
+
+            <div class="form-group" style="margin-top:24px;">
+                <label class="form-label">Competitor Insights (from report)</label>
+                <textarea class="form-textarea" id="va_competitorInsights" placeholder="Competitor advantages mentioned in the report..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Additional Notes</label>
+                <textarea class="form-textarea" id="va_additionalNotes" placeholder="Any other findings or context from the report..."></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-primary" onclick="generateFromFlowA()">Generate Messages &rarr;</button>
+                <button class="btn-secondary" onclick="resetFlowA()">Upload Different File</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOW B: Manual Entry -->
+    <div class="section" id="flowB">
+        <div class="section-header">
+            <button class="back-btn" onclick="showDashboard()">&larr; Back</button>
+            <h2 class="section-title">Manual Entry</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="flowBTabs">
+            <button class="tab-btn active" onclick="switchTab('flowB','tab1',this)">Basic Info</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab2',this)">GA4 & Tracking</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab3',this)">Homepage</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab4',this)">PDP</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab5',this)">Cart & Checkout</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab6',this)">SEO</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab7',this)">Competitors</button>
+            <button class="tab-btn" onclick="switchTab('flowB','tab8',this)">Additional</button>
+        </div>
+
+        <!-- Tab 1: Basic Info -->
+        <div class="tab-content active" id="flowB-tab1">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input class="form-input" type="text" id="brandName" placeholder="e.g., Re'equil">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Website URL</label>
+                    <input class="form-input" type="text" id="websiteUrl" placeholder="e.g., reequil.com">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Recipient Name</label>
+                    <input class="form-input" type="text" id="recipientName" placeholder="e.g., Rahul">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sender Name</label>
+                    <input class="form-input" type="text" id="senderName" placeholder="e.g., Naman">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mobile PageSpeed Score</label>
+                    <input class="form-input" type="number" id="mobilePS" placeholder="e.g., 34" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Desktop PageSpeed Score</label>
+                    <input class="form-input" type="number" id="desktopPS" placeholder="e.g., 65" min="0" max="100">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Industry</label>
+                <select class="form-select" id="industry">
+                    <option value="">Select industry...</option>
+                    <option value="skincare">Skincare / Beauty</option>
+                    <option value="fashion">Fashion / Apparel</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="health">Health & Wellness</option>
+                    <option value="food">Food & Beverages</option>
+                    <option value="home">Home & Living</option>
+                    <option value="jewelry">Jewelry & Accessories</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-nav">
+                <div></div>
+                <button class="btn-primary" onclick="switchTab('flowB','tab2',document.querySelectorAll('#flowBTabs .tab-btn')[1])">Next: GA4 & Tracking &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 2: GA4 & Tracking -->
+        <div class="tab-content" id="flowB-tab2">
+            <h3 style="margin-bottom:16px;">GA4 & Tracking Issues</h3>
+            <p class="form-hint" style="margin-bottom:16px;">Select all issues found during the audit.</p>
+            <div class="checkbox-grid">
+                <div class="checkbox-item"><input type="checkbox" id="no_ga4" value="no_ga4"><label for="no_ga4">GA4 not installed</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_gtm" value="no_gtm"><label for="no_gtm">GTM not found</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_ecom_events" value="no_ecom_events"><label for="no_ecom_events">GA4 ecommerce events not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_view_item_list" value="no_view_item_list"><label for="no_view_item_list">view_item_list not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_view_item" value="no_view_item"><label for="no_view_item">view_item not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_add_to_cart_event" value="no_add_to_cart_event"><label for="no_add_to_cart_event">add_to_cart not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_begin_checkout" value="no_begin_checkout"><label for="no_begin_checkout">begin_checkout not firing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_purchase_event" value="no_purchase_event"><label for="no_purchase_event">purchase event not verified</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_fb_pixel" value="no_fb_pixel"><label for="no_fb_pixel">Facebook Pixel missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_fb_capi" value="no_fb_capi"><label for="no_fb_capi">Facebook CAPI missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_clarity" value="no_clarity"><label for="no_clarity">Microsoft Clarity missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_hotjar" value="no_hotjar"><label for="no_hotjar">Hotjar missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_gads" value="no_gads"><label for="no_gads">Google Ads conversion missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_email_platform" value="no_email_platform"><label for="no_email_platform">No email platform (Klaviyo etc.)</label></div>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab1',document.querySelectorAll('#flowBTabs .tab-btn')[0])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab3',document.querySelectorAll('#flowBTabs .tab-btn')[2])">Next: Homepage &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 3: Homepage Issues -->
+        <div class="tab-content" id="flowB-tab3">
+            <h3 style="margin-bottom:16px;">Homepage Issues</h3>
+            <div class="checkbox-grid">
+                <div class="checkbox-item"><input type="checkbox" id="no_value_prop" value="no_value_prop"><label for="no_value_prop">No clear value proposition</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_hero_cta" value="no_hero_cta"><label for="no_hero_cta">Hero banner missing CTA</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_trust_badges" value="no_trust_badges"><label for="no_trust_badges">No trust badges visible</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_social_proof" value="no_social_proof"><label for="no_social_proof">No social proof (reviews/logos)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_category_nav" value="no_category_nav"><label for="no_category_nav">Poor category navigation</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_search" value="no_search"><label for="no_search">Search functionality weak/missing</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_announcement_bar" value="no_announcement_bar"><label for="no_announcement_bar">No announcement bar</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_email_capture" value="no_email_capture"><label for="no_email_capture">No email capture/popup</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_urgency_hp" value="no_urgency_hp"><label for="no_urgency_hp">No urgency/scarcity elements</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_sticky_nav" value="no_sticky_nav"><label for="no_sticky_nav">No sticky navigation</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_press_mentions" value="no_press_mentions"><label for="no_press_mentions">No press mentions</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="poor_mobile" value="poor_mobile"><label for="poor_mobile">Poor mobile responsiveness</label></div>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab2',document.querySelectorAll('#flowBTabs .tab-btn')[1])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab4',document.querySelectorAll('#flowBTabs .tab-btn')[3])">Next: PDP &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 4: PDP Issues -->
+        <div class="tab-content" id="flowB-tab4">
+            <h3 style="margin-bottom:16px;">Product Page (PDP) Issues</h3>
+            <div class="checkbox-grid">
+                <div class="checkbox-item"><input type="checkbox" id="no_sticky_atc" value="no_sticky_atc"><label for="no_sticky_atc">No sticky Add to Cart on mobile</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_buy_now" value="no_buy_now"><label for="no_buy_now">No "Buy Now" CTA</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_size_chart" value="no_size_chart"><label for="no_size_chart">No size chart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_reviews_pdp" value="no_reviews_pdp"><label for="no_reviews_pdp">No customer reviews section</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_image_zoom" value="no_image_zoom"><label for="no_image_zoom">No image zoom</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_product_video" value="no_product_video"><label for="no_product_video">No product video</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_wishlist" value="no_wishlist"><label for="no_wishlist">No "Add to Wishlist" option</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_recently_viewed" value="no_recently_viewed"><label for="no_recently_viewed">No "Recently Viewed" section</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_product_badges" value="no_product_badges"><label for="no_product_badges">No product badges (Bestseller/New)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_notify_me" value="no_notify_me"><label for="no_notify_me">No "Notify Me" on sold-out items</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_emi_bnpl" value="no_emi_bnpl"><label for="no_emi_bnpl">No EMI/BNPL option</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_shipping_info" value="no_shipping_info"><label for="no_shipping_info">No shipping/delivery info on PDP</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_return_policy" value="no_return_policy"><label for="no_return_policy">No returns policy visible</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_stock_indicator" value="no_stock_indicator"><label for="no_stock_indicator">No stock indicator</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_urgency_pdp" value="no_urgency_pdp"><label for="no_urgency_pdp">No urgency elements on PDP</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_cross_sell_pdp" value="no_cross_sell_pdp"><label for="no_cross_sell_pdp">No cross-sell on PDP</label></div>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab3',document.querySelectorAll('#flowBTabs .tab-btn')[2])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab5',document.querySelectorAll('#flowBTabs .tab-btn')[4])">Next: Cart & Checkout &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 5: Cart & Checkout -->
+        <div class="tab-content" id="flowB-tab5">
+            <h3 style="margin-bottom:16px;">Cart & Checkout Issues</h3>
+            <div class="checkbox-grid">
+                <div class="checkbox-item"><input type="checkbox" id="no_quick_add" value="no_quick_add"><label for="no_quick_add">No quick-add on collection pages</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_cross_sell" value="no_cross_sell"><label for="no_cross_sell">No cross-sell/upsell on cart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_shipping_bar" value="no_shipping_bar"><label for="no_shipping_bar">No free shipping progress bar</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_trust_cart" value="no_trust_cart"><label for="no_trust_cart">No trust badges in cart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_cart_drawer" value="no_cart_drawer"><label for="no_cart_drawer">No cart drawer/slide-out</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_discount_field" value="no_discount_field"><label for="no_discount_field">No discount code field in cart</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="checkout_friction" value="checkout_friction"><label for="checkout_friction">Checkout friction (too many steps)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_guest_checkout" value="no_guest_checkout"><label for="no_guest_checkout">No guest checkout option</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_payment_options" value="no_payment_options"><label for="no_payment_options">Limited payment options</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_order_summary" value="no_order_summary"><label for="no_order_summary">No persistent order summary</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_estimated_delivery" value="no_estimated_delivery"><label for="no_estimated_delivery">No estimated delivery date</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_cart_abandonment" value="no_cart_abandonment"><label for="no_cart_abandonment">No cart abandonment tools</label></div>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab4',document.querySelectorAll('#flowBTabs .tab-btn')[3])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab6',document.querySelectorAll('#flowBTabs .tab-btn')[5])">Next: SEO &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 6: SEO Issues -->
+        <div class="tab-content" id="flowB-tab6">
+            <h3 style="margin-bottom:16px;">SEO Issues</h3>
+            <div class="checkbox-grid">
+                <div class="checkbox-item"><input type="checkbox" id="multiple_h1" value="multiple_h1"><label for="multiple_h1">Multiple H1 tags</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_meta_desc" value="no_meta_desc"><label for="no_meta_desc">Missing/poor meta descriptions</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_product_schema" value="no_product_schema"><label for="no_product_schema">No Product schema (JSON-LD)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_breadcrumb_schema" value="no_breadcrumb_schema"><label for="no_breadcrumb_schema">No Breadcrumb schema</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_og_tags" value="no_og_tags"><label for="no_og_tags">Missing Open Graph tags</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_canonical" value="no_canonical"><label for="no_canonical">Missing/incorrect canonical URL</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_alt_tags" value="no_alt_tags"><label for="no_alt_tags">Missing image alt tags</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_sitemap" value="no_sitemap"><label for="no_sitemap">Missing sitemap.xml</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="poor_cwv" value="poor_cwv"><label for="poor_cwv">Poor Core Web Vitals</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="no_structured_data" value="no_structured_data"><label for="no_structured_data">No structured data (general)</label></div>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab5',document.querySelectorAll('#flowBTabs .tab-btn')[4])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab7',document.querySelectorAll('#flowBTabs .tab-btn')[6])">Next: Competitors &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 7: Competitors -->
+        <div class="tab-content" id="flowB-tab7">
+            <h3 style="margin-bottom:16px;">Competitor Insights</h3>
+            <p class="form-hint" style="margin-bottom:16px;">Mention what competitors do better. These become powerful bullets in the outreach.</p>
+            <div class="form-group">
+                <label class="form-label">Competitor advantages you noticed</label>
+                <textarea class="form-textarea" id="competitorInsights" placeholder="e.g., Nykaa has sticky Add to Cart on mobile. Dermaco shows reviews with photos. WOW has a Recently Viewed section on their PDP." style="min-height:150px;"></textarea>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab6',document.querySelectorAll('#flowBTabs .tab-btn')[5])">&larr; Previous</button>
+                <button class="btn-primary" onclick="switchTab('flowB','tab8',document.querySelectorAll('#flowBTabs .tab-btn')[7])">Next: Additional &rarr;</button>
+            </div>
+        </div>
+
+        <!-- Tab 8: Additional -->
+        <div class="tab-content" id="flowB-tab8">
+            <h3 style="margin-bottom:16px;">Additional Notes</h3>
+            <div class="form-group">
+                <label class="form-label">Any other findings or context</label>
+                <textarea class="form-textarea" id="additionalNotes" placeholder="e.g., Theme is Sleek v1.8.0 by FoxTheme. 14+ third-party integrations detected. Mobile traffic is 87.5%." style="min-height:150px;"></textarea>
+            </div>
+            <div class="form-nav">
+                <button class="btn-secondary" onclick="switchTab('flowB','tab7',document.querySelectorAll('#flowBTabs .tab-btn')[6])">&larr; Previous</button>
+                <button class="btn-primary" onclick="generateMessages()">Generate Messages &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOLLOW-UP MODE -->
+    <div class="section" id="followUp">
+        <div class="section-header">
+            <button class="back-btn" onclick="showDashboard()">&larr; Back</button>
+            <h2 class="section-title">Continue a Conversation</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <div style="background:var(--color-bg-primary);border-radius:16px;padding:24px;box-shadow:var(--shadow-md);">
+                <h3 style="margin-bottom:20px;">Conversation Context</h3>
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input class="form-input" type="text" id="fu_brandName" placeholder="Type brand name" list="fu_brandList">
+                    <datalist id="fu_brandList"></datalist>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Recipient Name</label>
+                        <input class="form-input" type="text" id="fu_recipientName" placeholder="e.g., Rahul">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sender Name</label>
+                        <input class="form-input" type="text" id="fu_senderName" placeholder="e.g., Naman">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Phase</label>
+                    <select class="form-select" id="fu_phase">
+                        <option value="phase1">Phase 1: Initial Outreach (no reply yet)</option>
+                        <option value="phase2">Phase 2: Nurturing (trying to schedule call)</option>
+                        <option value="phase3">Phase 3: Re-engagement (went cold)</option>
+                        <option value="phase4">Phase 4: Post-Call Follow-up</option>
+                        <option value="phase5">Phase 5: GA4/NDA Access Request</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">What happened last?</label>
+                    <textarea class="form-textarea" id="fu_context" placeholder="e.g., Meeting rescheduled twice, busy with UAE sale..." style="min-height:80px;"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Blocker / Objection</label>
+                        <select class="form-select" id="fu_blocker">
+                            <option value="no_response">No response</option>
+                            <option value="internal_team">Internal team</option>
+                            <option value="busy_sale">Busy with sale/launch</option>
+                            <option value="rescheduled">Rescheduled meeting</option>
+                            <option value="waiting_access">Waiting for GA4/NDA</option>
+                            <option value="check_founder">Check with founder</option>
+                            <option value="price_concern">Price concerns</option>
+                            <option value="gone_cold">Gone cold (2+ weeks)</option>
+                            <option value="post_call">Post-call follow-up</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Days since last contact</label>
+                        <input class="form-input" type="number" id="fu_daysSince" placeholder="e.g., 5" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Paste conversation text (optional)</label>
+                    <textarea class="form-textarea" id="fu_conversationText" placeholder="Paste recent email/WhatsApp thread here..." style="min-height:60px;"></textarea>
+                </div>
+                <button class="btn-primary" onclick="generateFollowUp()" style="width:100%;justify-content:center;">Generate Follow-Up Reply</button>
+            </div>
+            <div>
+                <div id="followUpOutput" style="display:none;">
+                    <div class="output-panel" style="margin-bottom:16px;">
+                        <div class="output-panel-header">
+                            <span class="output-panel-title">Email Follow-Up</span>
+                            <span class="output-panel-badge badge-email">EMAIL</span>
+                        </div>
+                        <div class="output-text" id="fuEmailBody"></div>
+                        <button class="copy-btn" onclick="copyFollowUpText('email',this)">Copy Email</button>
+                    </div>
+                    <div class="output-panel">
+                        <div class="output-panel-header">
+                            <span class="output-panel-title">WhatsApp Follow-Up</span>
+                            <span class="output-panel-badge badge-whatsapp">WHATSAPP</span>
+                        </div>
+                        <div class="output-text" id="fuWhatsappBody"></div>
+                        <button class="copy-btn" onclick="copyFollowUpText('whatsapp',this)">Copy WhatsApp</button>
+                    </div>
+                </div>
+                <div id="followUpPlaceholder" style="background:var(--color-bg-primary);border-radius:16px;padding:48px;text-align:center;box-shadow:var(--shadow-md);">
+                    <div style="font-size:36px;margin-bottom:12px;">&#128172;</div>
+                    <h4 style="color:var(--color-text-muted);margin-bottom:8px;">Your follow-up reply will appear here</h4>
+                    <p style="font-size:13px;color:var(--color-text-muted);">Fill in context on the left and generate.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OUTPUT SECTION -->
+    <div class="section" id="outputSection">
+        <div class="section-header">
+            <button class="back-btn" onclick="showDashboard()">&larr; Back to Dashboard</button>
+            <h2 class="section-title">Generated Messages</h2>
+        </div>
+
+        <!-- Output Tabs -->
+        <div class="tabs" id="outputTabs">
+            <button class="tab-btn active" onclick="switchTab('output','initial',this)">Initial Outreach</button>
+            <button class="tab-btn" onclick="switchTab('output','followup',this)">Follow-Up Sequence</button>
+        </div>
+
+        <!-- Initial Outreach -->
+        <div class="tab-content active" id="output-initial">
+            <div class="output-panels">
+                <div class="output-panel">
+                    <div class="output-panel-header">
+                        <span class="output-panel-title">Email</span>
+                        <span class="output-panel-badge badge-email">EMAIL</span>
+                    </div>
+                    <div class="output-subject" id="emailSubject"></div>
+                    <div class="output-text" id="emailBody"></div>
+                    <button class="copy-btn" onclick="copyText('emailFull', this)">Copy Email</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-panel-header">
+                        <span class="output-panel-title">WhatsApp</span>
+                        <span class="output-panel-badge badge-whatsapp">WHATSAPP</span>
+                    </div>
+                    <div class="output-text" id="whatsappBody"></div>
+                    <button class="copy-btn" onclick="copyText('whatsappFull', this)">Copy WhatsApp</button>
+                </div>
+            </div>
+            <div style="margin-top:20px;text-align:center;">
+                <button class="btn-secondary" onclick="saveToHistory()" style="padding:12px 24px;font-size:14px;">Save to Brand History</button>
+            </div>
+        </div>
+
+        <!-- Follow-Up Sequence -->
+        <div class="tab-content" id="output-followup">
+            <div id="followupCards"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="settingsSection">
+        <div class="section-header">
+            <button class="back-btn" onclick="showDashboard()">&larr; Back</button>
+            <h2 class="section-title">Settings</h2>
+        </div>
+
+        <!-- Case Studies Editor -->
+        <div class="settings-section">
+            <h3>Case Studies</h3>
+            <p class="form-hint" style="margin-bottom:16px;">These are used to match findings to real results in your outreach messages.</p>
+            <div style="overflow-x:auto;">
+                <table class="cs-table" id="caseStudyTable">
+                    <thead>
+                        <tr>
+                            <th style="width:15%;">Category</th>
+                            <th style="width:12%;">Client</th>
+                            <th style="width:13%;">Stat</th>
+                            <th style="width:25%;">Email Snippet</th>
+                            <th style="width:15%;">Trigger Issues</th>
+                            <th style="width:8%;">Active</th>
+                            <th style="width:12%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="caseStudyBody"></tbody>
+                </table>
+            </div>
+            <button class="btn-secondary" onclick="addCaseStudyRow()" style="margin-top:16px;padding:10px 20px;font-size:13px;">+ Add Case Study</button>
+        </div>
+
+        <!-- Client Names Editor -->
+        <div class="settings-section">
+            <h3>Client Names</h3>
+            <p class="form-hint" style="margin-bottom:16px;">These appear in the "About Us" section of outreach emails.</p>
+            <div class="client-name-tags" id="clientNameTags"></div>
+            <div style="display:flex;gap:8px;">
+                <input class="form-input" type="text" id="newClientName" placeholder="Add a client name..." style="flex:1;">
+                <button class="btn-primary" onclick="addClientName()" style="padding:10px 20px;font-size:13px;">Add</button>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-section">
+            <h3>Data Management</h3>
+            <div class="btn-group">
+                <button class="btn-secondary" onclick="exportAllData()" style="padding:10px 20px;font-size:13px;">Export All Data</button>
+                <button class="btn-secondary" onclick="importAllData()" style="padding:10px 20px;font-size:13px;">Import Data</button>
+                <button class="btn-secondary" onclick="clearAllData()" style="padding:10px 20px;font-size:13px;border-color:var(--color-danger);color:var(--color-danger);">Clear All Data</button>
+            </div>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="handleImportFile(event)">
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// AUTH MODULE
+// ============================================
+const CORRECT_PASSWORD = 'growisto2026';
+
+function showLogin() {
+    document.getElementById('coverPage').classList.add('hidden');
+    document.getElementById('loginScreen').classList.add('visible');
+    setTimeout(() => document.getElementById('passwordInput').focus(), 300);
+}
+
+function checkPassword() {
+    const input = document.getElementById('passwordInput').value;
+    if (input === CORRECT_PASSWORD) {
+        sessionStorage.setItem('cro_auth', 'true');
+        document.getElementById('loginScreen').classList.remove('visible');
+        document.getElementById('mainApp').classList.add('visible');
+    } else {
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+    }
+}
+
+// Auto-login if already authenticated
+if (sessionStorage.getItem('cro_auth') === 'true') {
+    document.getElementById('coverPage').classList.add('hidden');
+    document.getElementById('mainApp').classList.add('visible');
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+function showDashboard() {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.getElementById('dashboard').classList.add('visible');
+}
+
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.getElementById(id).classList.add('visible');
+}
+
+function showSettings() {
+    showSection('settingsSection');
+}
+
+// ============================================
+// TAB NAVIGATION
+// ============================================
+function switchTab(prefix, tabId, btn) {
+    const container = btn.closest('.section') || document.getElementById(prefix === 'output' ? 'outputSection' : 'flowB');
+    container.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    container.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+    document.getElementById(prefix + '-' + tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+// Checkbox toggle styling
+document.addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox') {
+        const item = e.target.closest('.checkbox-item');
+        if (item) item.classList.toggle('checked', e.target.checked);
+    }
+});
+
+// ============================================
+// DEFAULT CASE STUDIES
+// ============================================
+const DEFAULT_CASE_STUDIES = [
+    {
+        id: 'cs_1', category: 'Mobile PageSpeed / Performance', clientName: 'Atomberg',
+        statHeadline: '362% conversion growth',
+        emailSnippet: 'We took Atomberg\'s page speed scores up by 100% and saw a 362% conversion rate jump as part of a broader CRO program.',
+        whatsappSnippet: 'We helped *Atomberg* improve page speed by 100% — *362% conversion growth*.',
+        triggerIssues: ['slow_mobile', 'poor_cwv'], active: true
+    },
+    {
+        id: 'cs_2', category: 'Funnel Optimization / Add-to-Cart', clientName: 'TyresNmore',
+        statHeadline: '120% add-to-cart increase',
+        emailSnippet: 'For TyresNmore, our funnel optimizations drove a 120% increase in user-to-add-to-cart rate.',
+        whatsappSnippet: 'Our funnel work drove *120% add-to-cart increase* for *TyresNmore*.',
+        triggerIssues: ['no_sticky_atc', 'no_quick_add', 'no_buy_now'], active: true
+    },
+    {
+        id: 'cs_3', category: 'Conversion Rate (General)', clientName: 'TyresNmore',
+        statHeadline: '46% peak conversion rate growth',
+        emailSnippet: '46% peak conversion rate growth for TyresNmore through systematic CRO.',
+        whatsappSnippet: '*46% peak CR growth* for *TyresNmore* through systematic CRO.',
+        triggerIssues: ['checkout_friction', 'no_guest_checkout'], active: true
+    },
+    {
+        id: 'cs_4', category: 'AOV / Cart Upsell / Cross-sell', clientName: 'Premium Ayurvedic brand',
+        statHeadline: '12% AOV increase',
+        emailSnippet: 'We helped a premium Ayurvedic brand increase AOV by 12% with similar cart and upsell optimizations.',
+        whatsappSnippet: 'We helped a premium brand *increase AOV by 12%* with cart optimizations.',
+        triggerIssues: ['no_cross_sell', 'no_shipping_bar', 'no_cross_sell_pdp'], active: true
+    },
+    {
+        id: 'cs_5', category: 'Platform Migration / Stability', clientName: 'Powerlook',
+        statHeadline: '₹1 Cr/month saved',
+        emailSnippet: '₹1 Cr/month in lost revenue saved for Powerlook by migrating them off a crashing Magento + React setup to Shopify Plus — zero downtime, 80% revenue growth in the next festive season.',
+        whatsappSnippet: '*₹1 Cr/month saved* for *Powerlook* — 80% revenue growth post-migration.',
+        triggerIssues: ['very_slow_mobile'], active: true
+    },
+    {
+        id: 'cs_6', category: 'Long-term Growth / Revenue', clientName: 'Atomberg',
+        statHeadline: '362% conversion + 59% YoY revenue',
+        emailSnippet: '362% conversion growth + 59% YoY revenue increase for Atomberg through an 8-year technology partnership.',
+        whatsappSnippet: '*362% conversion + 59% YoY revenue* for *Atomberg* (8-year partnership).',
+        triggerIssues: ['no_ga4', 'no_ecom_events', 'no_tracking'], active: true
+    },
+    {
+        id: 'cs_7', category: 'Trust & Social Proof', clientName: 'Brand Portfolio',
+        statHeadline: 'Trusted by leading brands',
+        emailSnippet: '',
+        whatsappSnippet: '',
+        triggerIssues: ['no_trust_badges', 'no_social_proof', 'no_reviews_pdp'], active: true
+    }
+];
+
+const DEFAULT_CLIENT_NAMES = ['Kaya Clinic', 'Kama Ayurveda', 'Pilgrim', 'Atomberg', 'Powerlook', 'Deconstruct'];
+
+function getCaseStudies() {
+    try {
+        const data = JSON.parse(localStorage.getItem('cro_reachout_data'));
+        if (data && data.caseStudies && data.caseStudies.length > 0) return data.caseStudies.filter(cs => cs.active);
+    } catch(e) {}
+    return DEFAULT_CASE_STUDIES;
+}
+
+function getClientNames() {
+    try {
+        const data = JSON.parse(localStorage.getItem('cro_reachout_data'));
+        if (data && data.clientNames && data.clientNames.length > 0) return data.clientNames;
+    } catch(e) {}
+    return DEFAULT_CLIENT_NAMES;
+}
+
+// ============================================
+// DATA COLLECTION
+// ============================================
+function collectFormData() {
+    const data = {
+        brandName: document.getElementById('brandName').value.trim() || '[Brand Name]',
+        websiteUrl: document.getElementById('websiteUrl').value.trim(),
+        recipientName: document.getElementById('recipientName').value.trim() || '[Name]',
+        senderName: document.getElementById('senderName').value.trim() || '[Your Name]',
+        mobilePS: parseInt(document.getElementById('mobilePS').value) || null,
+        desktopPS: parseInt(document.getElementById('desktopPS').value) || null,
+        industry: document.getElementById('industry').value,
+        competitorInsights: document.getElementById('competitorInsights').value.trim(),
+        additionalNotes: document.getElementById('additionalNotes').value.trim(),
+        issues: []
+    };
+
+    // Collect all checked checkboxes
+    document.querySelectorAll('#flowB .checkbox-item input[type="checkbox"]:checked').forEach(cb => {
+        data.issues.push(cb.value);
+    });
+
+    // Auto-detect speed issues
+    if (data.mobilePS !== null && data.mobilePS < 50) data.issues.push('slow_mobile');
+    if (data.mobilePS !== null && data.mobilePS < 30) data.issues.push('very_slow_mobile');
+
+    return data;
+}
+
+// ============================================
+// CASE STUDY MATCHING
+// ============================================
+function matchCaseStudies(issues) {
+    const caseStudies = getCaseStudies();
+    const matched = [];
+    const usedClients = new Set();
+
+    for (const cs of caseStudies) {
+        if (matched.length >= 3) break;
+        const hasMatch = cs.triggerIssues.some(ti => issues.includes(ti));
+        if (hasMatch && !usedClients.has(cs.clientName)) {
+            matched.push(cs);
+            usedClients.add(cs.clientName);
+        }
+    }
+
+    return matched;
+}
+
+// ============================================
+// FINDING BULLET GENERATION
+// ============================================
+function generateFindingBullets(data, forWhatsApp) {
+    const bullets = [];
+    const mps = data.mobilePS;
+
+    // Priority order matching the CLAUDE.md Section 16.2
+    if (mps !== null && mps < 50) {
+        const stat = mps < 30
+            ? (forWhatsApp ? '📱 Mobile speed score is ' + mps + ' — fixing this alone can lift conversions 8-10%'
+               : 'Mobile page speed is at ' + mps + ' — getting this to 60-70 typically lifts conversions 8-10%. We took Atomberg\'s page speed scores up by 100% and saw a 362% conversion rate jump as part of a broader CRO program.')
+            : (forWhatsApp ? '📱 Mobile speed score is ' + mps + ' — room to improve conversions by 8-10%'
+               : 'Mobile page speed is at ' + mps + ' — getting this to 60-70 typically lifts conversions 8-10%. We took Atomberg\'s page speed scores up by 100% and saw a 362% conversion rate jump as part of a broader CRO program.');
+        bullets.push(stat);
+    }
+
+    if (data.issues.includes('no_sticky_atc')) {
+        bullets.push(forWhatsApp
+            ? '🛒 No sticky Add to Cart on mobile — usually a 5-7% conversion boost'
+            : 'No sticky Add to Cart on mobile PDPs — this one change alone usually improves conversions by 5-7%.');
+    }
+
+    if (data.issues.includes('no_quick_add')) {
+        bullets.push(forWhatsApp
+            ? '📦 No quick-add on collection pages — can boost add-to-cart rates significantly'
+            : 'No quick-add on collection pages — we\'ve seen this boost add-to-cart rates significantly. For TyresNmore, our funnel optimizations drove a 120% increase in user-to-add-to-cart rate.');
+    }
+
+    if (data.issues.includes('no_cross_sell') || data.issues.includes('no_cross_sell_pdp')) {
+        bullets.push(forWhatsApp
+            ? '📦 No product recommendations on cart page — easy AOV lift of 5-10%'
+            : 'No product recommendations on the cart page — a simple cross-sell setup that can lift AOV by 5-10%. We helped a premium Ayurvedic brand increase AOV by 12% with similar cart and upsell optimizations.');
+    }
+
+    if (data.issues.includes('no_ga4') || data.issues.includes('no_ecom_events')) {
+        bullets.push(forWhatsApp
+            ? '📊 GA4 ecommerce tracking is not set up — you\'re flying blind on where users drop off'
+            : 'GA4 ecommerce tracking is not set up — you\'re flying blind on where users drop off. Without this, every marketing rupee is a guess.');
+    }
+
+    if (data.issues.includes('no_trust_badges') || data.issues.includes('no_social_proof')) {
+        bullets.push(forWhatsApp
+            ? '🛡️ No trust badges or social proof visible — impacts purchase confidence'
+            : 'No trust badges or social proof visible on the homepage — this directly impacts purchase confidence, especially for first-time visitors.');
+    }
+
+    if (data.issues.includes('no_buy_now')) {
+        bullets.push(forWhatsApp
+            ? '⚡ No "Buy Now" CTA — adds extra steps for high-intent users'
+            : 'No "Buy Now" CTA on the PDP — this forces high-intent users through extra steps, reducing impulse purchases.');
+    }
+
+    if (data.issues.includes('no_wishlist')) {
+        bullets.push(forWhatsApp
+            ? '💜 No wishlist feature — losing repeat visits and delayed conversions'
+            : 'No "Add to Wishlist" feature — this limits re-engagement for users not ready to buy immediately, reducing repeat visits.');
+    }
+
+    if (data.issues.includes('no_recently_viewed')) {
+        bullets.push(forWhatsApp
+            ? '👁️ No "Recently Viewed" section — missing product rediscovery'
+            : 'No "Recently Viewed" section on homepage or PDP — this makes it harder for users comparing products to return to items they\'ve explored.');
+    }
+
+    if (data.issues.includes('checkout_friction')) {
+        bullets.push(forWhatsApp
+            ? '🔄 Checkout has friction — streamlining can reduce cart abandonment'
+            : 'Checkout flow has friction that\'s likely increasing cart abandonment. 46% peak conversion rate growth for TyresNmore came from systematic CRO including checkout optimization.');
+    }
+
+    if (data.issues.includes('no_shipping_bar')) {
+        bullets.push(forWhatsApp
+            ? '🚚 No free shipping progress bar — easy AOV driver'
+            : 'No free shipping progress bar in cart — this simple addition consistently drives higher AOV by encouraging users to add more items.');
+    }
+
+    if (data.issues.includes('multiple_h1') || data.issues.includes('no_product_schema')) {
+        bullets.push(forWhatsApp
+            ? '🔍 SEO issues found — impacting organic traffic potential'
+            : 'SEO issues detected (multiple H1 tags, missing Product schema) — these directly impact organic visibility and rich snippet display in search results.');
+    }
+
+    // Cap at 5 for email, 4 for WhatsApp
+    const max = forWhatsApp ? 4 : 5;
+    return bullets.slice(0, max);
+}
+
+// ============================================
+// EMAIL GENERATOR
+// ============================================
+function generateEmail(data) {
+    const bullets = generateFindingBullets(data, false);
+    const clientNames = getClientNames();
+    const brandType = data.websiteUrl ? data.brandName + '\'s Shopify store' : data.brandName + '\'s store';
+
+    const subject = 'Quick CRO wins I spotted on ' + data.brandName + '\'s store';
+
+    let bulletText = '';
+    bullets.forEach(b => { bulletText += '\u2022 ' + b + '\n\n'; });
+
+    const body = `Hi ${data.recipientName},
+
+I took a quick look at ${brandType} and spotted a few things that are likely leaving revenue on the table:
+
+${bulletText.trim()}
+
+A bit about us:
+
+At Growisto, we're a CRO-led Shopify development team — not just auditors. We dig into your GA4 data, identify exactly where users are dropping off, and then build and ship the fixes. Speed, UX, checkout flows, mobile experience — we own the entire journey from insight to implementation.
+
+Some recent results across 750+ projects:
+→ 46% peak conversion rate growth for TyresNmore (online tyre retailer) through systematic CRO
+→ ₹1 Cr/month in lost revenue saved for Powerlook by migrating them off a crashing Magento + React setup to Shopify Plus — zero downtime, 80% revenue growth in the next festive season
+→ 362% conversion growth + 59% YoY revenue increase for Atomberg through an 8-year technology partnership
+
+We've worked with brands like ${clientNames.join(', ')}, and more.
+
+To see if there's a fit, I'd love to understand:
+
+1. What's your primary focus right now — growing traffic, improving conversions, or increasing AOV?
+2. Are you currently tracking where users drop off in the funnel?
+
+Either way, happy to jump on a quick 15-minute call to walk through these observations and share how we've tackled similar challenges.
+
+Let me know what works — I've also attached a short deck with more on our approach and results.
+
+Best,
+${data.senderName}`;
+
+    return { subject, body };
+}
+
+// ============================================
+// WHATSAPP GENERATOR
+// ============================================
+function generateWhatsApp(data) {
+    const bullets = generateFindingBullets(data, true);
+    const clientNames = getClientNames();
+
+    let bulletText = '';
+    bullets.forEach(b => { bulletText += b + '\n'; });
+
+    const msg = `Hi ${data.recipientName} 👋
+
+I was looking at ${data.brandName}'s store and noticed a few quick wins that could meaningfully move your conversion numbers:
+
+${bulletText.trim()}
+
+We're Growisto — a CRO-focused Shopify dev team. We've driven results like 362% conversion growth for Atomberg, 46% CR lift for TyresNmore, and ₹1Cr/month in saved revenue for Powerlook.
+
+Happy to do a quick 15-min walkthrough of what we found and how we've solved similar issues for brands like ${clientNames.slice(0, 3).join(', ')}, and more.
+
+Would that be useful? 🙂
+
+— ${data.senderName}`;
+
+    return msg;
+}
+
+// ============================================
+// FOLLOW-UP SEQUENCE GENERATOR
+// ============================================
+function generateFollowUpSequence(data) {
+    const brandName = data.brandName;
+    const recipientName = data.recipientName;
+    const senderName = data.senderName;
+    const mps = data.mobilePS;
+    const industry = data.industry || 'D2C';
+    const clientNames = getClientNames();
+
+    // Pick a specific data point for message 1
+    let dataPoint = 'several conversion optimization opportunities';
+    if (mps !== null) dataPoint = 'a mobile PageSpeed of ' + mps;
+    else if (data.issues.includes('no_ga4')) dataPoint = 'no GA4 ecommerce tracking in place';
+    else if (data.issues.includes('no_sticky_atc')) dataPoint = 'no sticky Add to Cart on mobile';
+
+    const messages = [
+        {
+            title: 'Message 1: Data Point Lead',
+            timing: 'Day 0 (Initial)',
+            email: `Hi ${recipientName},
+
+We did a quick CRO analysis on ${brandName}. With ${dataPoint}, there's meaningful room to improve conversion rates.
+
+Is site performance and conversion optimization an area you're actively monitoring?
+
+Happy to share the full picture if that's useful.
+
+Best,
+${senderName}`,
+            whatsapp: `Hi ${recipientName} 👋
+
+Did a quick look at ${brandName} — noticed ${dataPoint}. Usually signals there's room to move the needle on conversions.
+
+Is this something you're actively looking at? Happy to share what we found.
+
+— ${senderName}`
+        },
+        {
+            title: 'Message 2: Industry Pattern',
+            timing: 'Day 3-5',
+            email: `Hi ${recipientName},
+
+One pattern we keep seeing with ${industry} brands is that mobile experience gaps (especially on PDP and checkout) are often the biggest hidden conversion blockers.
+
+${brandName} fits that profile — strong brand, solid product range, but the mobile funnel might be leaving conversions on the table.
+
+Does this match what you're seeing on your end?
+
+Best,
+${senderName}`,
+            whatsapp: `Hi ${recipientName} 👋
+
+One thing we keep seeing across ${industry} brands — mobile funnel gaps (PDP, checkout) are usually the #1 hidden conversion blocker.
+
+${brandName} seems to fit that pattern. Is mobile conversion something you've been tracking?
+
+— ${senderName}`
+        },
+        {
+            title: 'Message 3: Social Proof',
+            timing: 'Day 7-10',
+            email: `Hi ${recipientName},
+
+This came up during our last CRO roundtable with ${industry} teams — the brands seeing the biggest conversion lifts are the ones investing in mobile-first UX fixes before scaling ad spend.
+
+${brandName} came to mind given what we'd noticed. Happy to share what the group debated if that's useful.
+
+Best,
+${senderName}`,
+            whatsapp: `Hi ${recipientName} 👋
+
+Interesting discussion came up in our last CRO roundtable with ${industry} brands — the biggest conversion wins are coming from mobile UX fixes, not more ad spend.
+
+${brandName} came to mind. Happy to share what we discussed if useful 🙂
+
+— ${senderName}`
+        },
+        {
+            title: 'Message 4: Trust Story',
+            timing: 'Day 14-21',
+            email: `Hi ${recipientName},
+
+Quick context from our side — with Powerlook, we actually advised them *against* a full site rebuild initially, and instead focused on fixing the 5-6 conversion bottlenecks that were costing them ₹1 Cr/month. That honest call is what built the relationship.
+
+We think about CRO the same way for every brand we talk to — what are the 3-5 highest-impact fixes, and how fast can we ship them.
+
+If you ever want to talk through how we think about these calls, happy to exchange notes. No pitch, just perspective.
+
+Best,
+${senderName}`,
+            whatsapp: `Hi ${recipientName} 👋
+
+Quick story — with Powerlook, we actually told them *not* to rebuild their entire site. Instead, we fixed 5-6 conversion bottlenecks that were costing ₹1 Cr/month. That honest approach is what built the relationship.
+
+We think about every brand the same way — what are the highest-impact fixes, shipped fast.
+
+Happy to exchange notes if that's ever useful. No pitch 🙂
+
+— ${senderName}`
+        }
+    ];
+
+    return messages;
+}
+
+// ============================================
+// GENERATE & DISPLAY
+// ============================================
+function generateMessages() {
+    const data = collectFormData();
+
+    if (data.issues.length === 0 && !data.mobilePS && !data.competitorInsights) {
+        showToast('Please select at least some findings or enter a PageSpeed score.');
+        return;
+    }
+
+    // Generate initial outreach
+    const email = generateEmail(data);
+    const whatsapp = generateWhatsApp(data);
+
+    // Display email
+    document.getElementById('emailSubject').textContent = 'Subject: ' + email.subject;
+    document.getElementById('emailBody').textContent = email.body;
+
+    // Display WhatsApp
+    document.getElementById('whatsappBody').textContent = whatsapp;
+
+    // Store for copy
+    window._emailFull = 'Subject: ' + email.subject + '\n\n' + email.body;
+    window._whatsappFull = whatsapp;
+
+    // Generate follow-up sequence
+    const followups = generateFollowUpSequence(data);
+    const cardsContainer = document.getElementById('followupCards');
+    cardsContainer.innerHTML = '';
+
+    followups.forEach((msg, i) => {
+        const card = document.createElement('div');
+        card.className = 'followup-card';
+        card.innerHTML = `
+            <div class="followup-card-header">
+                <span class="followup-card-title">${msg.title}</span>
+                <span class="followup-timing">${msg.timing}</span>
+            </div>
+            <div class="followup-panels">
+                <div class="followup-panel">
+                    <div class="followup-panel-label">Email</div>
+                    <div class="followup-text">${escapeHtml(msg.email)}</div>
+                    <button class="copy-btn" onclick="copyDirect(this, ${i}, 'email')" style="margin-top:8px;">Copy Email</button>
+                </div>
+                <div class="followup-panel">
+                    <div class="followup-panel-label">WhatsApp</div>
+                    <div class="followup-text">${escapeHtml(msg.whatsapp)}</div>
+                    <button class="copy-btn" onclick="copyDirect(this, ${i}, 'whatsapp')" style="margin-top:8px;">Copy WhatsApp</button>
+                </div>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+    });
+
+    // Store followups for copy
+    window._followups = followups;
+
+    // Show output section
+    showSection('outputSection');
+    showToast('Messages generated successfully!');
+}
+
+// ============================================
+// CLIPBOARD
+// ============================================
+function copyText(key, btn) {
+    const text = key === 'emailFull' ? window._emailFull : window._whatsappFull;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = key === 'emailFull' ? 'Copy Email' : 'Copy WhatsApp'; }, 2000);
+    });
+}
+
+function copyDirect(btn, index, type) {
+    const msg = window._followups[index];
+    const text = type === 'email' ? msg.email : msg.whatsapp;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = type === 'email' ? 'Copy Email' : 'Copy WhatsApp'; }, 2000);
+    });
+}
+
+// ============================================
+// FLOW A: FILE UPLOAD & PARSING
+// ============================================
+
+// Drag and drop
+const uploadZone = document.getElementById('uploadZone');
+if (uploadZone) {
+    uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault(); this.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) processUploadedFile(file);
+    });
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) processUploadedFile(file);
+}
+
+async function processUploadedFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'pptx', 'ppt'].includes(ext)) {
+        showToast('Please upload a PDF or PPTX file.');
+        return;
+    }
+
+    // Show progress
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('uploadProgress').classList.add('visible');
+    updateProgress(10, 'Reading file...');
+
+    try {
+        let extractedText = '';
+        if (ext === 'pdf') {
+            extractedText = await parsePDF(file);
+        } else {
+            extractedText = await parsePPTX(file);
+        }
+
+        updateProgress(70, 'Extracting findings...');
+
+        // Run extraction heuristics
+        const findings = extractFindings(extractedText);
+
+        updateProgress(90, 'Populating form...');
+
+        // Populate verification form
+        populateVerifyForm(findings);
+
+        updateProgress(100, 'Done!');
+
+        // Show verification form
+        setTimeout(() => {
+            document.getElementById('uploadProgress').classList.remove('visible');
+            document.getElementById('verifyForm').style.display = 'block';
+
+            // Show extraction summary
+            showExtractionSummary(findings);
+        }, 500);
+
+    } catch (err) {
+        console.error('Parse error:', err);
+        document.getElementById('uploadProgress').classList.remove('visible');
+        document.getElementById('uploadZone').style.display = 'block';
+        showToast('Error parsing file: ' + err.message);
+    }
+}
+
+function updateProgress(percent, status) {
+    document.getElementById('progressBar').style.width = percent + '%';
+    document.getElementById('progressStatus').textContent = status;
+}
+
+// PDF Parser using pdf.js
+async function parsePDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    updateProgress(20, 'Parsing PDF (' + pdf.numPages + ' pages)...');
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join(' ');
+        fullText += '\n--- PAGE ' + i + ' ---\n' + pageText;
+        updateProgress(20 + Math.round((i / pdf.numPages) * 45), 'Parsing page ' + i + ' of ' + pdf.numPages + '...');
+    }
+
+    return fullText;
+}
+
+// PPTX Parser using JSZip
+async function parsePPTX(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    let fullText = '';
+    let slideNum = 0;
+
+    // Find all slide XML files
+    const slideFiles = Object.keys(zip.files)
+        .filter(name => name.match(/^ppt\/slides\/slide\d+\.xml$/))
+        .sort((a, b) => {
+            const numA = parseInt(a.match(/slide(\d+)/)[1]);
+            const numB = parseInt(b.match(/slide(\d+)/)[1]);
+            return numA - numB;
+        });
+
+    updateProgress(20, 'Parsing PPTX (' + slideFiles.length + ' slides)...');
+
+    for (const slidePath of slideFiles) {
+        slideNum++;
+        const xml = await zip.file(slidePath).async('string');
+        // Extract text from <a:t> elements
+        const textMatches = xml.match(/<a:t>([^<]*)<\/a:t>/g);
+        if (textMatches) {
+            const slideText = textMatches.map(m => m.replace(/<\/?a:t>/g, '')).join(' ');
+            fullText += '\n--- SLIDE ' + slideNum + ' ---\n' + slideText;
+        }
+        updateProgress(20 + Math.round((slideNum / slideFiles.length) * 45), 'Parsing slide ' + slideNum + ' of ' + slideFiles.length + '...');
+    }
+
+    return fullText;
+}
+
+// Keyword-based finding extraction
+function extractFindings(text) {
+    const t = text.toLowerCase();
+    const findings = {
+        brandName: '',
+        websiteUrl: '',
+        mobilePS: null,
+        desktopPS: null,
+        industry: '',
+        issues: [],
+        competitors: [],
+        rawText: text
+    };
+
+    // Extract brand name from title-like patterns
+    const brandPatterns = [
+        /(?:cro\s+audit|audit\s+report|analysis)\s+(?:for\s+|[-–—]\s*)([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/i,
+        /^---\s*(?:PAGE|SLIDE)\s*1\s*---\s*([A-Z][a-zA-Z'\-]+)/m
+    ];
+    for (const p of brandPatterns) {
+        const m = text.match(p);
+        if (m) { findings.brandName = m[1].trim(); break; }
+    }
+
+    // Extract PageSpeed scores
+    const mobileSpeedMatch = text.match(/mobile\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i)
+        || text.match(/(\d{1,3})\s*(?:mobile\s*(?:page\s*speed|pagespeed|speed))/i);
+    if (mobileSpeedMatch) findings.mobilePS = parseInt(mobileSpeedMatch[1]);
+
+    const desktopSpeedMatch = text.match(/desktop\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i)
+        || text.match(/(\d{1,3})\s*(?:desktop\s*(?:page\s*speed|pagespeed|speed))/i);
+    if (desktopSpeedMatch) findings.desktopPS = parseInt(desktopSpeedMatch[1]);
+
+    // Extract website URL
+    const urlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.(?:com|in|co\.in|io|net|org))/i);
+    if (urlMatch) findings.websiteUrl = urlMatch[0].replace(/^https?:\/\//, '').replace(/^www\./, '');
+
+    // Detect industry
+    if (t.includes('skincare') || t.includes('beauty') || t.includes('cosmetic') || t.includes('skin care')) findings.industry = 'skincare';
+    else if (t.includes('fashion') || t.includes('apparel') || t.includes('clothing')) findings.industry = 'fashion';
+    else if (t.includes('electronics') || t.includes('gadget')) findings.industry = 'electronics';
+    else if (t.includes('health') || t.includes('wellness') || t.includes('supplement')) findings.industry = 'health';
+    else if (t.includes('food') || t.includes('beverage')) findings.industry = 'food';
+    else if (t.includes('jewel') || t.includes('accessor')) findings.industry = 'jewelry';
+
+    // Issue detection via keywords
+    const issueMap = {
+        'no_sticky_atc': ['sticky', 'add to cart', 'atc'].filter(k => t.includes(k)).length >= 2
+            || t.includes('sticky add to cart') || t.includes('sticky atc')
+            || (t.includes('add to cart') && (t.includes('not sticky') || t.includes('is not sticky'))),
+        'no_buy_now': t.includes('buy now') && (t.includes('missing') || t.includes('no ') || t.includes('add a') || t.includes('does not offer')),
+        'no_wishlist': t.includes('wishlist') && (t.includes('missing') || t.includes('no ') || t.includes('does not') || t.includes('add an')),
+        'no_recently_viewed': t.includes('recently viewed') && (t.includes('missing') || t.includes('no ') || t.includes('do not feature') || t.includes('add a')),
+        'no_product_badges': t.includes('badge') && (t.includes('missing') || t.includes('no ') || t.includes('product badge')),
+        'no_notify_me': t.includes('notify me') || (t.includes('sold') && t.includes('out') && (t.includes('notify') || t.includes('alert'))),
+        'no_quick_add': t.includes('quick add') || t.includes('quick-add'),
+        'no_cross_sell': (t.includes('cross-sell') || t.includes('cross sell') || t.includes('upsell') || t.includes('up-sell'))
+            && (t.includes('missing') || t.includes('no ') || t.includes('recommend')),
+        'no_shipping_bar': t.includes('shipping') && t.includes('bar') && (t.includes('progress') || t.includes('free')),
+        'no_trust_badges': t.includes('trust') && t.includes('badge'),
+        'no_social_proof': t.includes('social proof') && (t.includes('missing') || t.includes('no ')),
+        'no_reviews_pdp': t.includes('review') && (t.includes('missing') || t.includes('no customer')),
+        'no_image_zoom': t.includes('zoom') && t.includes('image'),
+        'no_product_video': t.includes('product video') && (t.includes('missing') || t.includes('no ')),
+        'no_ga4': t.includes('ga4') && (t.includes('not installed') || t.includes('missing') || t.includes('not found')),
+        'no_ecom_events': t.includes('ecommerce event') && (t.includes('not firing') || t.includes('missing') || t.includes('not set up')),
+        'multiple_h1': t.includes('multiple h1') || t.includes('h1 tag') && t.includes('multiple'),
+        'no_product_schema': t.includes('schema') && (t.includes('product') || t.includes('json-ld') || t.includes('structured data'))
+            && (t.includes('missing') || t.includes('implement') || t.includes('no ')),
+        'no_meta_desc': t.includes('meta description') && (t.includes('missing') || t.includes('stale') || t.includes('update') || t.includes('replace')),
+        'poor_cwv': t.includes('core web vital') && (t.includes('fail') || t.includes('poor')),
+        'checkout_friction': t.includes('checkout') && (t.includes('friction') || t.includes('too many step')),
+        'no_urgency_pdp': t.includes('urgency') && (t.includes('missing') || t.includes('no ')),
+        'no_size_chart': t.includes('size chart') && (t.includes('missing') || t.includes('no ')),
+        'no_sticky_nav': t.includes('sticky nav') || (t.includes('navigation') && t.includes('sticky'))
+    };
+
+    for (const [issue, detected] of Object.entries(issueMap)) {
+        if (detected) findings.issues.push(issue);
+    }
+
+    // Also check for meta description specific patterns from Re'equil report
+    if (t.includes('pinch') && t.includes('zoom')) findings.issues.push('no_image_zoom');
+    if (t.includes('redundant') && (t.includes('tool') || t.includes('script'))) {
+        // Note about consolidation needed
+    }
+    if (t.includes('font') && t.includes('declaration') && t.includes('redundant')) {
+        // Performance issue noted
+    }
+
+    // Extract competitor names
+    const competitorPatterns = [
+        /vs\.?\s+([A-Z][a-zA-Z]+)/g,
+        /(?:competitor|compared?\s+to|versus)\s+([A-Z][a-zA-Z]+)/gi
+    ];
+    const knownBrands = ['Nykaaman', 'Nykaa', 'Dermaco', 'WOW', 'Mamaearth', 'Minimalist', 'Plum', 'mCaffeine',
+        'Sugar', 'Lakme', 'Biotique', 'Khadi', 'Forest Essentials', 'Kama Ayurveda'];
+    for (const brand of knownBrands) {
+        if (t.includes(brand.toLowerCase())) findings.competitors.push(brand);
+    }
+
+    return findings;
+}
+
+// Populate verification form from extracted findings
+function populateVerifyForm(findings) {
+    if (findings.brandName) document.getElementById('va_brandName').value = findings.brandName;
+    if (findings.websiteUrl) document.getElementById('va_websiteUrl').value = findings.websiteUrl;
+    if (findings.mobilePS) document.getElementById('va_mobilePS').value = findings.mobilePS;
+    if (findings.desktopPS) document.getElementById('va_desktopPS').value = findings.desktopPS;
+    if (findings.industry) document.getElementById('va_industry').value = findings.industry;
+
+    // Pre-check detected issues
+    findings.issues.forEach(issue => {
+        const cb = document.getElementById('va_' + issue);
+        if (cb) {
+            cb.checked = true;
+            const item = cb.closest('.checkbox-item');
+            if (item) item.classList.add('checked');
+        }
+    });
+
+    // Populate competitor insights
+    if (findings.competitors.length > 0) {
+        document.getElementById('va_competitorInsights').value = 'Competitors found in report: ' + findings.competitors.join(', ');
+    }
+}
+
+// Show extraction summary
+function showExtractionSummary(findings) {
+    const list = document.getElementById('extractedList');
+    list.innerHTML = '';
+    const items = [];
+
+    if (findings.brandName) items.push('Brand: ' + findings.brandName);
+    if (findings.websiteUrl) items.push('Website: ' + findings.websiteUrl);
+    if (findings.mobilePS) items.push('Mobile PageSpeed: ' + findings.mobilePS);
+    if (findings.desktopPS) items.push('Desktop PageSpeed: ' + findings.desktopPS);
+    if (findings.issues.length > 0) items.push(findings.issues.length + ' CRO issues detected');
+    if (findings.competitors.length > 0) items.push('Competitors: ' + findings.competitors.join(', '));
+
+    if (items.length === 0) {
+        items.push('Limited auto-extraction. Please fill in details manually.');
+    }
+
+    items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.appendChild(li);
+    });
+
+    document.getElementById('extractedSummary').classList.add('visible');
+}
+
+// Generate from Flow A verification form
+function generateFromFlowA() {
+    const data = window._lastGeneratedData = {
+        brandName: document.getElementById('va_brandName').value.trim() || '[Brand Name]',
+        websiteUrl: document.getElementById('va_websiteUrl').value.trim(),
+        recipientName: document.getElementById('va_recipientName').value.trim() || '[Name]',
+        senderName: document.getElementById('va_senderName').value.trim() || '[Your Name]',
+        mobilePS: parseInt(document.getElementById('va_mobilePS').value) || null,
+        desktopPS: parseInt(document.getElementById('va_desktopPS').value) || null,
+        industry: document.getElementById('va_industry').value,
+        competitorInsights: document.getElementById('va_competitorInsights').value.trim(),
+        additionalNotes: document.getElementById('va_additionalNotes').value.trim(),
+        issues: []
+    };
+
+    // Collect checked checkboxes from Flow A verify form
+    document.querySelectorAll('#va_checkboxes input[type="checkbox"]:checked, #verifyForm .checkbox-item input[type="checkbox"]:checked').forEach(cb => {
+        data.issues.push(cb.value);
+    });
+
+    // Auto-detect speed issues
+    if (data.mobilePS !== null && data.mobilePS < 50) data.issues.push('slow_mobile');
+    if (data.mobilePS !== null && data.mobilePS < 30) data.issues.push('very_slow_mobile');
+
+    // Deduplicate
+    data.issues = [...new Set(data.issues)];
+
+    if (data.issues.length === 0 && !data.mobilePS && !data.competitorInsights) {
+        showToast('Please select at least some findings or enter a PageSpeed score.');
+        return;
+    }
+
+    // Use the same generators as Flow B
+    const email = generateEmail(data);
+    const whatsapp = generateWhatsApp(data);
+
+    document.getElementById('emailSubject').textContent = 'Subject: ' + email.subject;
+    document.getElementById('emailBody').textContent = email.body;
+    document.getElementById('whatsappBody').textContent = whatsapp;
+    window._emailFull = 'Subject: ' + email.subject + '\n\n' + email.body;
+    window._whatsappFull = whatsapp;
+
+    // Generate follow-up sequence
+    const followups = generateFollowUpSequence(data);
+    const cardsContainer = document.getElementById('followupCards');
+    cardsContainer.innerHTML = '';
+    followups.forEach((msg, i) => {
+        const card = document.createElement('div');
+        card.className = 'followup-card';
+        card.innerHTML = `
+            <div class="followup-card-header">
+                <span class="followup-card-title">${msg.title}</span>
+                <span class="followup-timing">${msg.timing}</span>
+            </div>
+            <div class="followup-panels">
+                <div class="followup-panel">
+                    <div class="followup-panel-label">Email</div>
+                    <div class="followup-text">${escapeHtml(msg.email)}</div>
+                    <button class="copy-btn" onclick="copyDirect(this, ${i}, 'email')" style="margin-top:8px;">Copy Email</button>
+                </div>
+                <div class="followup-panel">
+                    <div class="followup-panel-label">WhatsApp</div>
+                    <div class="followup-text">${escapeHtml(msg.whatsapp)}</div>
+                    <button class="copy-btn" onclick="copyDirect(this, ${i}, 'whatsapp')" style="margin-top:8px;">Copy WhatsApp</button>
+                </div>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+    });
+    window._followups = followups;
+
+    showSection('outputSection');
+    showToast('Messages generated from uploaded report!');
+}
+
+// Reset Flow A to upload again
+function resetFlowA() {
+    document.getElementById('verifyForm').style.display = 'none';
+    document.getElementById('extractedSummary').classList.remove('visible');
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('fileInput').value = '';
+    // Reset all verify form checkboxes
+    document.querySelectorAll('#verifyForm input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        const item = cb.closest('.checkbox-item');
+        if (item) item.classList.remove('checked');
+    });
+    document.querySelectorAll('#verifyForm input[type="text"], #verifyForm input[type="number"]').forEach(inp => inp.value = '');
+    document.querySelectorAll('#verifyForm textarea').forEach(ta => ta.value = '');
+    document.getElementById('va_industry').selectedIndex = 0;
+}
+
+// ============================================
+// FOLLOW-UP REPLY GENERATOR
+// ============================================
+function generateFollowUp() {
+    const brandName = document.getElementById('fu_brandName').value.trim() || '[Brand]';
+    const recipientName = document.getElementById('fu_recipientName').value.trim() || '[Name]';
+    const senderName = document.getElementById('fu_senderName').value.trim() || '[Your Name]';
+    const phase = document.getElementById('fu_phase').value;
+    const context = document.getElementById('fu_context').value.trim();
+    const blocker = document.getElementById('fu_blocker').value;
+    const daysSince = parseInt(document.getElementById('fu_daysSince').value) || 0;
+
+    const replies = generateContextualReply(brandName, recipientName, senderName, phase, blocker, daysSince, context);
+
+    document.getElementById('fuEmailBody').textContent = replies.email;
+    document.getElementById('fuWhatsappBody').textContent = replies.whatsapp;
+    window._fuEmail = replies.email;
+    window._fuWhatsapp = replies.whatsapp;
+
+    document.getElementById('followUpOutput').style.display = 'block';
+    document.getElementById('followUpPlaceholder').style.display = 'none';
+    showToast('Follow-up reply generated!');
+}
+
+function generateContextualReply(brand, recipient, sender, phase, blocker, days, context) {
+    const templates = {
+        // No response templates
+        'no_response': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Just checking in on my previous note about ${brand}. I know things get busy — happy to find a time that works better.
+
+In the meantime, I came across some interesting data on how ${brand}'s category is evolving in terms of mobile conversion rates. Would love to share if that's useful.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Just following up on my earlier note about ${brand}. No rush at all — happy to share some category-level insights we've been seeing if that's useful.
+
+— ${sender}`
+            }),
+            long: () => ({
+                email: `Hi ${recipient},
+
+Hope all is well on your end. I shared some observations about ${brand}'s store a little while back — thought I'd circle back with a fresh perspective.
+
+One thing we've been noticing across D2C brands lately is that even small mobile UX fixes (sticky CTAs, streamlined checkout) are driving outsized conversion gains. The brands acting on this early are seeing real separation from competitors.
+
+If there's ever a good time for a 15-minute walkthrough, I'd be happy to share what we've been seeing across the category. No pitch — just observations.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Circling back on ${brand} — no pressure at all. We've been seeing some interesting mobile CRO trends across the category lately.
+
+Happy to share a quick 15-min perspective whenever timing works 🙂
+
+— ${sender}`
+            })
+        },
+        'internal_team': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Completely understand that ${brand} has an in-house team handling this. We've actually found that our best partnerships are with brands that already have strong internal teams — we bring a specialized CRO lens and execution speed that complements what they're already doing.
+
+For context, our work with Atomberg started as a "second opinion" audit alongside their internal team, and it led to a 362% conversion growth partnership.
+
+Would it be useful to have a quick conversation about where we might add complementary value?
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Totally get it on the internal team. Our best work is actually *alongside* existing teams — we bring specialized CRO execution speed that complements in-house.
+
+Our Atomberg partnership started as a second opinion and grew to 362% conversion growth 🙂
+
+Worth a quick chat to see if there's a complementary angle?
+
+— ${sender}`
+            })
+        },
+        'busy_sale': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Totally understand — ${context ? context : 'sounds like a busy period'}. Happy to reconnect when the timing is better.
+
+One thought to leave with you: post-sale periods are often the best time to audit what worked and what didn't in the funnel. When things calm down, we could run a quick analysis to see where conversions can be improved for the next push.
+
+No rush — just wanted to plant the seed. Wishing you a great sale season!
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Totally understand the busy period! Wishing you a great sale season 🎉
+
+Quick thought — post-sale is actually the best time to audit what worked in the funnel. Happy to reconnect when things calm down.
+
+— ${sender}`
+            })
+        },
+        'rescheduled': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+No worries at all on the reschedule — I know how packed things can get. I'm flexible with timing.
+
+Would any of these work for a quick 15-minute chat?
+- [Suggest 2-3 time slots]
+
+Alternatively, if it's easier, I'm happy to share a short Loom walkthrough of our observations on ${brand}'s store that you can watch whenever is convenient.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Totally understand! Happy to work around your schedule.
+
+Would [time slot options] work? Or if easier, I can send a quick Loom walkthrough you can watch anytime 🙂
+
+— ${sender}`
+            })
+        },
+        'waiting_access': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Just wanted to gently follow up on the GA4 access we discussed. In the meantime, there's actually quite a bit we can do with just the publicly visible data — PageSpeed analysis, UX audit, competitive benchmarking.
+
+If the access is still in process, we could start with these external checks and layer in the analytics deep-dive once access is sorted.
+
+Would that approach work?
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Quick check on the GA4 access — meanwhile, there's a lot we can audit from the outside (PageSpeed, UX, competitors).
+
+Want us to start with those while access gets sorted? 🙂
+
+— ${sender}`
+            })
+        },
+        'check_founder': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Completely understand — these decisions often need buy-in from the top. To make it easier, I've put together a quick summary you can share:
+
+- We found ${brand} has significant mobile UX and conversion gaps vs competitors
+- Similar fixes for brands like TyresNmore drove 46% conversion growth
+- We're suggesting a quick 15-minute walkthrough — no commitment, just observations
+
+Happy to also join a call directly with the team if that would be more helpful.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Totally understand! Here's a quick summary you can share:
+
+📊 ${brand} has clear mobile UX gaps vs competitors
+📈 Similar fixes drove 46% CR growth for TyresNmore
+🕐 We're offering a free 15-min walkthrough
+
+Happy to join a call directly with the team too!
+
+— ${sender}`
+            })
+        },
+        'price_concern': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Appreciate the transparency on budget considerations. A few things that might be helpful to know:
+
+1. We typically start with a focused sprint on the 3-5 highest-impact fixes — not a massive overhaul
+2. For context, Powerlook's initial engagement focused on just the critical bottlenecks, and it saved them ₹1 Cr/month
+3. We're happy to start small and expand based on results
+
+Would a conversation about scoping a focused first phase be useful?
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Totally understand on the budget front. We usually start with just the 3-5 highest-impact fixes — not a big overhaul.
+
+For Powerlook, that focused approach saved ₹1 Cr/month. Happy to scope something similar for ${brand}.
+
+Worth a quick chat? 🙂
+
+— ${sender}`
+            })
+        },
+        'gone_cold': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+It's been a while — hope all is going well at ${brand}! I'm reaching out with something fresh rather than a follow-up.
+
+We recently completed a CRO roundtable with D2C brands in your category, and one insight stood out: brands that invested in mobile checkout optimization this quarter saw 20-30% higher conversion rates during peak sale periods.
+
+${brand} came to mind given what we'd observed earlier. If you're planning for the next sale season, happy to share what we discussed — no strings attached.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Been a while — hope things are going well! Not following up, just sharing something fresh:
+
+Our recent D2C roundtable revealed brands investing in mobile checkout optimization are seeing 20-30% higher conversion rates during sales.
+
+${brand} came to mind. Happy to share the insights if useful 🙂
+
+— ${sender}`
+            })
+        },
+        'post_call': {
+            short: () => ({
+                email: `Hi ${recipient},
+
+Thanks for taking the time to chat about ${brand} — really enjoyed the conversation.
+
+Here's a quick recap of what we discussed:
+- [Key finding 1 from the audit]
+- [Key finding 2]
+- [Key finding 3]
+
+As next steps, we'd suggest:
+1. A focused CRO sprint on the top 3-5 quick wins we identified
+2. Setting up proper GA4 ecommerce tracking to measure impact
+3. A 30-day check-in to review results and plan phase 2
+
+I'll send over a brief proposal by [date]. In the meantime, happy to answer any questions.
+
+Best,
+${sender}`,
+                whatsapp: `Hi ${recipient} 👋
+
+Great chatting today about ${brand}! Quick recap:
+
+📋 Key findings: [Top 2-3 issues]
+🎯 Next step: Focused CRO sprint on quick wins
+
+I'll send a brief proposal by [date]. Let me know if any questions come up!
+
+— ${sender}`
+            })
+        }
+    };
+
+    // Select template based on blocker
+    const template = templates[blocker] || templates['no_response'];
+    const variant = days > 14 ? (template.long || template.short) : template.short;
+    return variant();
+}
+
+function copyFollowUpText(type, btn) {
+    const text = type === 'email' ? window._fuEmail : window._fuWhatsapp;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = type === 'email' ? 'Copy Email' : 'Copy WhatsApp'; }, 2000);
+    });
+}
+
+function saveFollowUpToHistory() {
+    const brandName = document.getElementById('fu_brandName').value.trim();
+    if (!brandName) { showToast('Please enter a brand name.'); return; }
+    const allData = loadAllData();
+    // Find or create brand
+    let brandId = null;
+    for (const [id, b] of Object.entries(allData.brands)) {
+        if (b.brandName.toLowerCase() === brandName.toLowerCase()) { brandId = id; break; }
+    }
+    if (!brandId) {
+        brandId = generateUUID();
+        allData.brands[brandId] = {
+            id: brandId, brandName: brandName, websiteUrl: '', recipientName: document.getElementById('fu_recipientName').value.trim(),
+            senderName: document.getElementById('fu_senderName').value.trim(), mobilePageSpeed: null, desktopPageSpeed: null,
+            keyFindings: [], currentPhase: document.getElementById('fu_phase').selectedOptions[0].text,
+            status: 'active', createdDate: new Date().toISOString().split('T')[0],
+            lastUpdated: new Date().toISOString().split('T')[0], notes: '', competitorInsights: ''
+        };
+    }
+    // Update phase
+    allData.brands[brandId].currentPhase = document.getElementById('fu_phase').selectedOptions[0].text;
+    allData.brands[brandId].lastUpdated = new Date().toISOString().split('T')[0];
+    // Save conversation context
+    allData.conversations.push({
+        id: generateUUID(), brandId: brandId, date: new Date().toISOString().split('T')[0],
+        phase: document.getElementById('fu_phase').selectedOptions[0].text,
+        context: document.getElementById('fu_context').value.trim(),
+        blocker: document.getElementById('fu_blocker').selectedOptions[0].text,
+        nextAction: 'Follow-up sent', addedBy: document.getElementById('fu_senderName').value.trim()
+    });
+    saveAllData(allData);
+    renderBrandList();
+    showToast('Follow-up saved to history for "' + brandName + '"!');
+}
+
+// Populate brand datalist for follow-up mode
+function populateBrandDatalist() {
+    const allData = loadAllData();
+    const datalist = document.getElementById('fu_brandList');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    Object.values(allData.brands).forEach(brand => {
+        const opt = document.createElement('option');
+        opt.value = brand.brandName;
+        datalist.appendChild(opt);
+    });
+}
+
+// ============================================
+// LOCALSTORAGE MANAGER
+// ============================================
+function loadAllData() {
+    try {
+        const raw = localStorage.getItem('cro_reachout_data');
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    // Initialize defaults
+    const defaults = {
+        brands: {},
+        messages: [],
+        conversations: [],
+        caseStudies: JSON.parse(JSON.stringify(DEFAULT_CASE_STUDIES)),
+        clientNames: [...DEFAULT_CLIENT_NAMES]
+    };
+    localStorage.setItem('cro_reachout_data', JSON.stringify(defaults));
+    return defaults;
+}
+
+function saveAllData(data) {
+    localStorage.setItem('cro_reachout_data', JSON.stringify(data));
+}
+
+function generateUUID() {
+    return 'xxxx-xxxx-xxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16));
+}
+
+// Store last generated data for "Save to History"
+window._lastGeneratedData = null;
+
+// Patch generateMessages and generateFromFlowA to store data
+const _origGenerateMessages = generateMessages;
+generateMessages = function() {
+    window._lastGeneratedData = collectFormData();
+    _origGenerateMessages();
+};
+
+const _origGenerateFromFlowA = generateFromFlowA;
+
+// Save current brand to history
+function saveToHistory() {
+    const data = window._lastGeneratedData;
+    if (!data || !data.brandName || data.brandName === '[Brand Name]') {
+        showToast('Please generate messages first and provide a brand name.');
+        return;
+    }
+
+    const allData = loadAllData();
+    const brandId = generateUUID();
+    const now = new Date().toISOString().split('T')[0];
+
+    allData.brands[brandId] = {
+        id: brandId,
+        brandName: data.brandName,
+        websiteUrl: data.websiteUrl || '',
+        recipientName: data.recipientName || '',
+        senderName: data.senderName || '',
+        mobilePageSpeed: data.mobilePS,
+        desktopPageSpeed: data.desktopPS,
+        keyFindings: data.issues,
+        currentPhase: 'Phase 1: Initial Outreach',
+        status: 'active',
+        createdDate: now,
+        lastUpdated: now,
+        notes: data.additionalNotes || '',
+        competitorInsights: data.competitorInsights || ''
+    };
+
+    // Save initial messages
+    if (window._emailFull) {
+        allData.messages.push({
+            id: generateUUID(), brandId: brandId, type: 'initial_email',
+            channel: 'email', content: window._emailFull,
+            sentDate: now, sentBy: data.senderName || '', responseStatus: 'sent'
+        });
+    }
+    if (window._whatsappFull) {
+        allData.messages.push({
+            id: generateUUID(), brandId: brandId, type: 'initial_whatsapp',
+            channel: 'whatsapp', content: window._whatsappFull,
+            sentDate: now, sentBy: data.senderName || '', responseStatus: 'sent'
+        });
+    }
+
+    saveAllData(allData);
+    renderBrandList();
+    showToast('Brand "' + data.brandName + '" saved to history!');
+}
+
+// Render brand list in sidebar
+function renderBrandList() {
+    const allData = loadAllData();
+    const brands = Object.values(allData.brands).sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
+    const container = document.getElementById('brandList');
+    const empty = document.getElementById('brandListEmpty');
+
+    if (brands.length === 0) {
+        container.innerHTML = '';
+        container.appendChild(empty);
+        empty.style.display = 'block';
+        return;
+    }
+
+    empty.style.display = 'none';
+    container.innerHTML = '';
+
+    brands.forEach(brand => {
+        const statusClass = 'status-' + (brand.status || 'active');
+        const item = document.createElement('div');
+        item.className = 'brand-list-item';
+        item.onclick = () => viewBrandDetail(brand.id);
+        item.innerHTML = `
+            <div>
+                <div class="brand-list-name">${escapeHtml(brand.brandName)}</div>
+                <div class="brand-list-meta">${brand.currentPhase || 'Initial'} &bull; ${brand.lastUpdated}</div>
+            </div>
+            <div>
+                <span class="brand-status-badge ${statusClass}">${brand.status || 'active'}</span>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function viewBrandDetail(brandId) {
+    // For now, show a toast. Phase 5 will add the full conversation timeline.
+    const allData = loadAllData();
+    const brand = allData.brands[brandId];
+    if (brand) {
+        showToast('Brand: ' + brand.brandName + ' — ' + brand.currentPhase);
+    }
+}
+
+// Export/Import
+function exportBrandJSON(brandId) {
+    const allData = loadAllData();
+    const brand = allData.brands[brandId];
+    if (!brand) return;
+    const exportObj = {
+        exportVersion: 1,
+        exportDate: new Date().toISOString().split('T')[0],
+        brand: brand,
+        messages: allData.messages.filter(m => m.brandId === brandId),
+        conversations: allData.conversations.filter(c => c.brandId === brandId)
+    };
+    downloadJSON(exportObj, brand.brandName.toLowerCase().replace(/\s+/g, '_') + '_context.json');
+}
+
+function exportAllData() {
+    const allData = loadAllData();
+    downloadJSON(allData, 'cro_reachout_full_export.json');
+    showToast('Full data exported!');
+}
+
+function downloadJSON(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function importBrandJSON() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const imported = JSON.parse(text);
+            const allData = loadAllData();
+
+            if (imported.brand) {
+                // Single brand import
+                allData.brands[imported.brand.id] = imported.brand;
+                if (imported.messages) allData.messages.push(...imported.messages);
+                if (imported.conversations) allData.conversations.push(...imported.conversations);
+                saveAllData(allData);
+                renderBrandList();
+                showToast('Brand "' + imported.brand.brandName + '" imported!');
+            } else {
+                showToast('Invalid import file format.');
+            }
+        } catch (err) {
+            showToast('Error importing: ' + err.message);
+        }
+    };
+    input.click();
+}
+
+function importAllData() {
+    document.getElementById('importFileInput').click();
+}
+
+function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (imported.brands && imported.messages) {
+                saveAllData(imported);
+                renderBrandList();
+                renderSettings();
+                showToast('All data imported successfully!');
+            } else {
+                showToast('Invalid import format. Expected full export file.');
+            }
+        } catch(err) {
+            showToast('Error importing: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function clearAllData() {
+    if (confirm('Are you sure you want to clear ALL data? This cannot be undone.\n\nExport your data first if you want a backup.')) {
+        localStorage.removeItem('cro_reachout_data');
+        renderBrandList();
+        renderSettings();
+        showToast('All data cleared.');
+    }
+}
+
+// ============================================
+// SETTINGS: CASE STUDY EDITOR
+// ============================================
+function renderSettings() {
+    renderCaseStudyTable();
+    renderClientNameTags();
+}
+
+function renderCaseStudyTable() {
+    const allData = loadAllData();
+    const tbody = document.getElementById('caseStudyBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    allData.caseStudies.forEach((cs, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input value="${escapeHtml(cs.category)}" data-field="category" data-index="${i}"></td>
+            <td><input value="${escapeHtml(cs.clientName)}" data-field="clientName" data-index="${i}"></td>
+            <td><input value="${escapeHtml(cs.statHeadline)}" data-field="statHeadline" data-index="${i}"></td>
+            <td><textarea data-field="emailSnippet" data-index="${i}">${escapeHtml(cs.emailSnippet)}</textarea></td>
+            <td><input value="${escapeHtml(cs.triggerIssues.join(', '))}" data-field="triggerIssues" data-index="${i}" placeholder="issue1, issue2"></td>
+            <td style="text-align:center;"><input type="checkbox" ${cs.active ? 'checked' : ''} data-field="active" data-index="${i}"></td>
+            <td class="cs-actions">
+                <button class="cs-action-btn cs-save" onclick="saveCaseStudy(${i})">Save</button>
+                <button class="cs-action-btn cs-delete" onclick="deleteCaseStudy(${i})">Del</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function saveCaseStudy(index) {
+    const allData = loadAllData();
+    const row = document.querySelector(`[data-index="${index}"][data-field="category"]`).closest('tr');
+    allData.caseStudies[index].category = row.querySelector('[data-field="category"]').value;
+    allData.caseStudies[index].clientName = row.querySelector('[data-field="clientName"]').value;
+    allData.caseStudies[index].statHeadline = row.querySelector('[data-field="statHeadline"]').value;
+    allData.caseStudies[index].emailSnippet = row.querySelector('[data-field="emailSnippet"]').value;
+    allData.caseStudies[index].triggerIssues = row.querySelector('[data-field="triggerIssues"]').value.split(',').map(s => s.trim()).filter(Boolean);
+    allData.caseStudies[index].active = row.querySelector('[data-field="active"]').checked;
+    saveAllData(allData);
+    showToast('Case study saved!');
+}
+
+function deleteCaseStudy(index) {
+    if (!confirm('Delete this case study?')) return;
+    const allData = loadAllData();
+    allData.caseStudies.splice(index, 1);
+    saveAllData(allData);
+    renderCaseStudyTable();
+    showToast('Case study deleted.');
+}
+
+function addCaseStudyRow() {
+    const allData = loadAllData();
+    allData.caseStudies.push({
+        id: 'cs_' + Date.now(),
+        category: 'New Category',
+        clientName: 'Client Name',
+        statHeadline: 'Result headline',
+        emailSnippet: 'Email snippet describing the result.',
+        whatsappSnippet: 'WhatsApp snippet.',
+        triggerIssues: [],
+        active: true
+    });
+    saveAllData(allData);
+    renderCaseStudyTable();
+    showToast('New case study added. Edit and save it.');
+}
+
+// ============================================
+// SETTINGS: CLIENT NAMES EDITOR
+// ============================================
+function renderClientNameTags() {
+    const allData = loadAllData();
+    const container = document.getElementById('clientNameTags');
+    if (!container) return;
+    container.innerHTML = '';
+
+    allData.clientNames.forEach((name, i) => {
+        const tag = document.createElement('span');
+        tag.className = 'client-tag';
+        tag.innerHTML = escapeHtml(name) + ' <span class="client-tag-remove" onclick="removeClientName(' + i + ')">&times;</span>';
+        container.appendChild(tag);
+    });
+}
+
+function addClientName() {
+    const input = document.getElementById('newClientName');
+    const name = input.value.trim();
+    if (!name) return;
+    const allData = loadAllData();
+    if (!allData.clientNames.includes(name)) {
+        allData.clientNames.push(name);
+        saveAllData(allData);
+        renderClientNameTags();
+        showToast('Added "' + name + '"');
+    }
+    input.value = '';
+}
+
+function removeClientName(index) {
+    const allData = loadAllData();
+    allData.clientNames.splice(index, 1);
+    saveAllData(allData);
+    renderClientNameTags();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderBrandList();
+    renderSettings();
+    populateBrandDatalist();
+});
+
+// Also render immediately if DOM is already loaded
+if (document.readyState !== 'loading') {
+    renderBrandList();
+    renderSettings();
+    populateBrandDatalist();
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
