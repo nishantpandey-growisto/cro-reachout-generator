@@ -200,6 +200,39 @@
         }
         .checkbox-item label { font-size: 13px; cursor: pointer; line-height: 1.4; }
 
+        /* RANKED ISSUE LIST (Flow A verified issues) */
+        .ranked-issue-list { display: flex; flex-direction: column; gap: 6px; }
+        .ranked-issue-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            background: var(--color-bg-primary); border: 1.5px solid #e5e7eb; border-radius: 10px;
+            cursor: pointer; transition: all var(--transition-fast); position: relative;
+        }
+        .ranked-issue-item:hover { border-color: var(--color-primary); background: var(--color-secondary-light); }
+        .ranked-issue-item.checked { border-color: var(--color-primary); background: var(--color-secondary-light); }
+        .ranked-issue-item.disabled-max { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+        .ranked-issue-rank {
+            flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+            background: var(--color-bg-secondary); color: var(--color-text-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600;
+        }
+        .ranked-issue-item.checked .ranked-issue-rank { background: var(--color-primary); color: var(--color-text-light); }
+        .ranked-issue-item input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0;
+        }
+        .ranked-issue-label { font-size: 13px; line-height: 1.4; font-weight: 500; }
+        .ranked-issue-category { font-size: 11px; color: var(--color-text-muted); font-weight: 400; }
+        .priority-badge {
+            flex-shrink: 0; padding: 3px 10px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .priority-badge.high { background: var(--color-danger-bg); color: var(--color-danger); }
+        .priority-badge.medium { background: var(--color-warning-bg); color: #b45309; }
+        .priority-badge.low { background: var(--color-bg-secondary); color: var(--color-text-muted); }
+        .issue-counter { font-size: 13px; }
+        .issue-counter.at-limit { color: var(--color-warning) !important; }
+        .issue-counter.under-min { color: var(--color-danger) !important; }
+
         /* BUTTONS */
         .btn-primary {
             display: inline-flex; align-items: center; gap: 8px;
@@ -584,32 +617,17 @@
             </div>
 
             <h4 style="margin:24px 0 12px;">Detected CRO Issues</h4>
-            <p class="form-hint" style="margin-bottom:16px;">Pre-checked based on report content. Uncheck any that don't apply, or check additional issues.</p>
-            <div class="checkbox-grid" id="va_checkboxes">
-                <div class="checkbox-item"><input type="checkbox" id="va_no_sticky_atc" value="no_sticky_atc"><label for="va_no_sticky_atc">No sticky Add to Cart on mobile</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_buy_now" value="no_buy_now"><label for="va_no_buy_now">No "Buy Now" CTA</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_wishlist" value="no_wishlist"><label for="va_no_wishlist">No "Add to Wishlist" option</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_recently_viewed" value="no_recently_viewed"><label for="va_no_recently_viewed">No "Recently Viewed" section</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_product_badges" value="no_product_badges"><label for="va_no_product_badges">No product badges (Bestseller/New)</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_notify_me" value="no_notify_me"><label for="va_no_notify_me">No "Notify Me" on sold-out items</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_quick_add" value="no_quick_add"><label for="va_no_quick_add">No quick-add on collection pages</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_cross_sell" value="no_cross_sell"><label for="va_no_cross_sell">No cross-sell/upsell on cart</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_shipping_bar" value="no_shipping_bar"><label for="va_no_shipping_bar">No free shipping progress bar</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_trust_badges" value="no_trust_badges"><label for="va_no_trust_badges">No trust badges visible</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_social_proof" value="no_social_proof"><label for="va_no_social_proof">No social proof (reviews/logos)</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_reviews_pdp" value="no_reviews_pdp"><label for="va_no_reviews_pdp">No customer reviews section</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_image_zoom" value="no_image_zoom"><label for="va_no_image_zoom">No image zoom</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_product_video" value="no_product_video"><label for="va_no_product_video">No product video</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_ga4" value="no_ga4"><label for="va_no_ga4">GA4 not installed</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_ecom_events" value="no_ecom_events"><label for="va_no_ecom_events">GA4 ecommerce events not firing</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_multiple_h1" value="multiple_h1"><label for="va_multiple_h1">Multiple H1 tags</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_product_schema" value="no_product_schema"><label for="va_no_product_schema">No Product schema (JSON-LD)</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_meta_desc" value="no_meta_desc"><label for="va_no_meta_desc">Missing/poor meta descriptions</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_poor_cwv" value="poor_cwv"><label for="va_poor_cwv">Poor Core Web Vitals</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_checkout_friction" value="checkout_friction"><label for="va_checkout_friction">Checkout friction</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_urgency_pdp" value="no_urgency_pdp"><label for="va_no_urgency_pdp">No urgency elements on PDP</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_size_chart" value="no_size_chart"><label for="va_no_size_chart">No size chart</label></div>
-                <div class="checkbox-item"><input type="checkbox" id="va_no_sticky_nav" value="no_sticky_nav"><label for="va_no_sticky_nav">No sticky navigation</label></div>
+            <p class="form-hint" style="margin-bottom:8px;">Ranked by impact. Top 4 pre-selected for your message. Select 3-5 issues.</p>
+            <div id="issueCounter" class="issue-counter">0 selected (min 3, max 5)</div>
+            <div id="rankedIssueList"></div>
+            <div id="issueMinWarning" style="display:none;background:#fef3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:0.85rem;color:#856404;">
+                ⚠️ Fewer than 3 issues detected. Add more from the dropdown below to strengthen your message.
+            </div>
+            <div id="addMoreIssuesSection" style="display:none;margin-top:10px;">
+                <label class="form-label" style="font-size:0.85rem;">Add an issue:</label>
+                <select class="form-select" id="addIssueDropdown" style="font-size:0.85rem;">
+                    <option value="">Select an issue to add...</option>
+                </select>
             </div>
 
             <div class="form-group" style="margin-top:24px;">
@@ -1456,19 +1474,34 @@ function calculateEstimatedCROScore(issues, data) {
 }
 
 function generateSmartBullets(data, forWhatsApp) {
-    const ranked = scoreFindingsByImpact(data.issues, data);
     const mps = data.mobilePS;
     const bullets = [];
     const max = forWhatsApp ? 4 : 5;
-    for (const finding of ranked) {
+
+    // Iterate issues directly — user has already selected 3-5 in ranked order
+    for (const issueKey of data.issues) {
         if (bullets.length >= max) break;
-        const bt = forWhatsApp ? finding.whatsappBullet : finding.emailBullet;
-        if (bt) { bullets.push(bt); }
-        else if ((finding.issue === 'slow_mobile' || finding.issue === 'very_slow_mobile') && mps !== null && mps < 70) {
+        var reg = FINDING_REGISTRY[issueKey];
+
+        // Handle speed issues (auto-injected, not in registry with bullets)
+        if ((issueKey === 'slow_mobile' || issueKey === 'very_slow_mobile') && mps !== null && mps < 70) {
             const caseRef = mps < 50 ? " We took Atomberg's page speed scores up by 100% and saw a 167% conversion rate jump as part of a broader CRO program." : '';
             bullets.push(forWhatsApp
                 ? '\ud83d\udcf1 Mobile speed score is ' + mps + ' \u2014 ' + (mps < 40 ? 'critically low, fixing this can lift conversions 8-10%' : 'room to improve, typically lifts conversions 5-8%')
                 : 'Mobile page speed is at ' + mps + ' \u2014 getting this to 60-70 typically lifts conversions 8-10%.' + caseRef);
+            continue;
+        }
+
+        if (!reg) continue;
+
+        var bt = forWhatsApp ? reg.whatsappBullet : reg.emailBullet;
+        if (bt) {
+            bullets.push(bt);
+        } else {
+            // Generic fallback so every user-selected issue appears in the output
+            bullets.push(forWhatsApp
+                ? '\u26a0\ufe0f ' + reg.label + ' \u2014 addressing this can meaningfully improve conversions'
+                : reg.label + ' \u2014 this is a common conversion blocker that we typically address early in our CRO programs.');
         }
     }
     return bullets;
@@ -1506,6 +1539,166 @@ function displayScoreSummary(data) {
     alertsEl.innerHTML = score.alerts.map(a => '<div class="critical-alert ' + a.type + '">\u26a0\ufe0f ' + a.text + '</div>').join('');
 }
 
+// ============================================
+// RANKED ISSUE LIST (Flow A)
+// ============================================
+function renderDetectedIssues(detectedKeys, checkedOverrides) {
+    var container = document.getElementById('rankedIssueList');
+    container.textContent = '';
+    container.className = 'ranked-issue-list';
+
+    // Filter to only issues that exist in FINDING_REGISTRY
+    var validIssues = detectedKeys.filter(function(key) { return FINDING_REGISTRY[key]; });
+
+    // Sort by impactScore descending
+    validIssues.sort(function(a, b) {
+        return (FINDING_REGISTRY[b].impactScore || 0) - (FINDING_REGISTRY[a].impactScore || 0);
+    });
+
+    // Pre-check top 4 by default, or use overrides if provided
+    var preCheckCount = Math.min(4, validIssues.length);
+
+    validIssues.forEach(function(key, index) {
+        var reg = FINDING_REGISTRY[key];
+        var priority = reg.impactScore >= 8 ? 'HIGH' : (reg.impactScore >= 5 ? 'MEDIUM' : 'LOW');
+        var isChecked = checkedOverrides ? checkedOverrides.includes(key) : (index < preCheckCount);
+
+        var item = document.createElement('div');
+        item.className = 'ranked-issue-item' + (isChecked ? ' checked' : '');
+        item.setAttribute('data-issue-key', key);
+
+        var rank = document.createElement('span');
+        rank.className = 'ranked-issue-rank';
+        rank.textContent = index + 1;
+
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = 'ri_' + key;
+        cb.value = key;
+        cb.checked = isChecked;
+
+        var labelWrap = document.createElement('div');
+        labelWrap.style.flex = '1';
+        var lbl = document.createElement('div');
+        lbl.className = 'ranked-issue-label';
+        lbl.textContent = reg.label;
+        var cat = document.createElement('div');
+        cat.className = 'ranked-issue-category';
+        cat.textContent = reg.category + ' \u00b7 Impact: ' + reg.impactScore + '/10';
+        labelWrap.appendChild(lbl);
+        labelWrap.appendChild(cat);
+
+        var badge = document.createElement('span');
+        badge.className = 'priority-badge ' + priority.toLowerCase();
+        badge.textContent = priority;
+
+        item.appendChild(rank);
+        item.appendChild(cb);
+        item.appendChild(labelWrap);
+        item.appendChild(badge);
+
+        // Click row to toggle checkbox (skip if clicking the checkbox itself)
+        item.addEventListener('click', function(e) {
+            if (e.target.type === 'checkbox') return;
+            if (cb.disabled) return;
+            cb.checked = !cb.checked;
+            cb.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        container.appendChild(item);
+    });
+
+    // Attach change handler for min/max enforcement
+    container.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') enforceIssueSelectionLimits();
+    });
+
+    // Handle fewer than 3 issues detected
+    if (validIssues.length < 3) {
+        document.getElementById('issueMinWarning').style.display = 'block';
+        populateAddIssueDropdown(validIssues);
+        document.getElementById('addMoreIssuesSection').style.display = 'block';
+    } else {
+        document.getElementById('issueMinWarning').style.display = 'none';
+        document.getElementById('addMoreIssuesSection').style.display = 'none';
+    }
+
+    // Initial counter update
+    enforceIssueSelectionLimits();
+}
+
+function enforceIssueSelectionLimits() {
+    var container = document.getElementById('rankedIssueList');
+    if (!container) return;
+    var allCBs = container.querySelectorAll('input[type="checkbox"]');
+    var checkedCBs = container.querySelectorAll('input[type="checkbox"]:checked');
+    var count = checkedCBs.length;
+    var MAX = 5, MIN = 3;
+
+    // Update counter text and color
+    var counter = document.getElementById('issueCounter');
+    if (counter) {
+        counter.textContent = count + ' selected (min ' + MIN + ', max ' + MAX + ')';
+        counter.classList.remove('at-limit', 'under-min');
+        if (count >= MAX) counter.classList.add('at-limit');
+        if (count < MIN) counter.classList.add('under-min');
+    }
+
+    // Toggle checked class on items + enable/disable based on max
+    allCBs.forEach(function(cb) {
+        var item = cb.closest('.ranked-issue-item');
+        if (!item) return;
+        item.classList.toggle('checked', cb.checked);
+        if (!cb.checked && count >= MAX) {
+            cb.disabled = true;
+            item.classList.add('disabled-max');
+        } else {
+            cb.disabled = false;
+            item.classList.remove('disabled-max');
+        }
+    });
+}
+
+function populateAddIssueDropdown(existingKeys) {
+    var dropdown = document.getElementById('addIssueDropdown');
+    if (!dropdown) return;
+    // Clear options
+    while (dropdown.options.length > 1) dropdown.remove(1);
+
+    // Get all registry keys NOT in existing list, sorted by impactScore desc
+    var available = Object.keys(FINDING_REGISTRY)
+        .filter(function(key) { return !existingKeys.includes(key); })
+        .sort(function(a, b) { return (FINDING_REGISTRY[b].impactScore || 0) - (FINDING_REGISTRY[a].impactScore || 0); });
+
+    available.forEach(function(key) {
+        var reg = FINDING_REGISTRY[key];
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = reg.label + ' (' + reg.category + ', Impact: ' + reg.impactScore + ')';
+        dropdown.appendChild(opt);
+    });
+
+    // On select, add the issue to the ranked list preserving checked state
+    dropdown.onchange = function() {
+        var key = dropdown.value;
+        if (!key) return;
+
+        // Read current state
+        var currentKeys = [];
+        var checkedKeys = [];
+        document.querySelectorAll('#rankedIssueList .ranked-issue-item').forEach(function(item) {
+            var k = item.getAttribute('data-issue-key');
+            currentKeys.push(k);
+            if (item.querySelector('input[type="checkbox"]:checked')) checkedKeys.push(k);
+        });
+        currentKeys.push(key);
+        checkedKeys.push(key); // auto-check the newly added issue
+
+        // Re-render preserving checked state
+        renderDetectedIssues(currentKeys, checkedKeys);
+        dropdown.value = '';
+    };
+}
 
 function renderFollowupCards(followups) {
     const cardsContainer = document.getElementById('followupCards');
@@ -2143,15 +2336,8 @@ function populateVerifyForm(findings) {
     if (findings.desktopPS) document.getElementById('va_desktopPS').value = findings.desktopPS;
     if (findings.industry) document.getElementById('va_industry').value = findings.industry;
 
-    // Pre-check detected issues
-    findings.issues.forEach(issue => {
-        const cb = document.getElementById('va_' + issue);
-        if (cb) {
-            cb.checked = true;
-            const item = cb.closest('.checkbox-item');
-            if (item) item.classList.add('checked');
-        }
-    });
+    // Render detected issues as ranked list (sorted by impact, top 4 pre-checked)
+    renderDetectedIssues(findings.issues);
 
     // Populate competitor insights
     if (findings.competitors.length > 0) {
@@ -2200,22 +2386,27 @@ function generateFromFlowA() {
         issues: []
     };
 
-    // Collect checked checkboxes from Flow A verify form
-    document.querySelectorAll('#va_checkboxes input[type="checkbox"]:checked, #verifyForm .checkbox-item input[type="checkbox"]:checked').forEach(cb => {
+    // Collect checked issues from ranked list (user's explicit selection, already in ranked order)
+    document.querySelectorAll('#rankedIssueList input[type="checkbox"]:checked').forEach(cb => {
         data.issues.push(cb.value);
     });
 
-    // Auto-detect speed issues
+    // Validate selection limits
+    if (data.issues.length < 3) {
+        showToast('Please select at least 3 issues for a compelling message.');
+        return;
+    }
+    if (data.issues.length > 5) {
+        showToast('Please select no more than 5 issues to keep the message focused.');
+        return;
+    }
+
+    // Auto-detect speed issues (these are injected based on PageSpeed score, not from report)
     if (data.mobilePS !== null && data.mobilePS < 50) data.issues.push('slow_mobile');
     if (data.mobilePS !== null && data.mobilePS < 30) data.issues.push('very_slow_mobile');
 
     // Deduplicate
     data.issues = [...new Set(data.issues)];
-
-    if (data.issues.length === 0 && !data.mobilePS && !data.competitorInsights) {
-        showToast('Please select at least some findings or enter a PageSpeed score.');
-        return;
-    }
 
     // Use the same generators as Flow B
     const email = generateEmail(data);
@@ -2245,12 +2436,15 @@ function resetFlowA() {
     document.getElementById('extractedSummary').classList.remove('visible');
     document.getElementById('uploadZone').style.display = 'block';
     document.getElementById('fileInput').value = '';
-    // Reset all verify form checkboxes
-    document.querySelectorAll('#verifyForm input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-        const item = cb.closest('.checkbox-item');
-        if (item) item.classList.remove('checked');
-    });
+    // Clear ranked issue list and hide supporting elements
+    var rankedList = document.getElementById('rankedIssueList');
+    if (rankedList) rankedList.textContent = '';
+    var issueCounter = document.getElementById('issueCounter');
+    if (issueCounter) { issueCounter.textContent = '0 selected (min 3, max 5)'; issueCounter.classList.remove('at-limit', 'under-min'); }
+    var minWarning = document.getElementById('issueMinWarning');
+    if (minWarning) minWarning.style.display = 'none';
+    var addMoreSection = document.getElementById('addMoreIssuesSection');
+    if (addMoreSection) addMoreSection.style.display = 'none';
     document.querySelectorAll('#verifyForm input[type="text"], #verifyForm input[type="number"]').forEach(inp => inp.value = '');
     document.querySelectorAll('#verifyForm textarea').forEach(ta => ta.value = '');
     document.getElementById('va_industry').selectedIndex = 0;
