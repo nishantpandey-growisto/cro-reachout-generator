@@ -1413,7 +1413,13 @@ const FINDING_REGISTRY = {
     no_order_summary:    { category: 'UX', impactScore: 3, pointsAtStake: 0, criticalRule: null, label: 'No order summary', emailBullet: null, whatsappBullet: null },
     no_estimated_delivery:{ category: 'UX', impactScore: 4, pointsAtStake: 0, criticalRule: null, label: 'No delivery date', emailBullet: null, whatsappBullet: null },
     no_cart_abandonment: { category: 'Conversion', impactScore: 5, pointsAtStake: 2, criticalRule: null, label: 'No cart recovery', emailBullet: null, whatsappBullet: null },
-    no_tracking:         { category: 'Analytics', impactScore: 8, pointsAtStake: 0, criticalRule: null, label: 'No tracking', emailBullet: null, whatsappBullet: null }
+    no_tracking:         { category: 'Analytics', impactScore: 8, pointsAtStake: 0, criticalRule: null, label: 'No tracking', emailBullet: null, whatsappBullet: null },
+    poor_plp_design:     { category: 'UX', impactScore: 6, pointsAtStake: 0, criticalRule: null, label: 'PLP layout needs optimization', emailBullet: "Product listing page layout lacks proper organization \u2014 making it harder for users to discover and compare products, which directly impacts add-to-cart rates.", whatsappBullet: "\ud83d\udcf1 PLP design needs optimization \u2014 impacting product discovery and add-to-cart rates" },
+    no_qty_selector:     { category: 'UX', impactScore: 4, pointsAtStake: 0, criticalRule: null, label: 'No quantity selector on cart', emailBullet: "Cart page lacks a quantity selector \u2014 forcing users to remove and re-add items creates friction that can lead to abandonment.", whatsappBullet: "\ud83d\uded2 No quantity selector on cart \u2014 adds unnecessary friction" },
+    poor_cart_summary:   { category: 'UX', impactScore: 4, pointsAtStake: 0, criticalRule: null, label: 'Unclear cart price summary', emailBullet: "Cart price summary is unclear \u2014 when users can't easily see total cost, taxes, and savings, it erodes purchase confidence.", whatsappBullet: "\ud83d\udcb0 Unclear price summary on cart \u2014 erodes purchase confidence" },
+    weak_value_prop:     { category: 'Conversion', impactScore: 7, pointsAtStake: 2, criticalRule: null, label: 'Weak value proposition', emailBullet: "Value proposition is unclear or missing \u2014 first-time visitors can't immediately understand why they should buy from you. This is often the single biggest homepage conversion blocker.", whatsappBullet: "\ud83c\udfe0 Weak value proposition \u2014 visitors don't know why to choose you" },
+    weak_hero:           { category: 'Conversion', impactScore: 5, pointsAtStake: 0, criticalRule: null, label: 'Hero banner not optimized', emailBullet: "Hero banner is not optimized for conversions \u2014 the first thing users see needs a clear CTA and benefit-driven messaging.", whatsappBullet: "\ud83c\udfa8 Hero banner not optimized \u2014 first impression matters for conversions" },
+    no_filters:          { category: 'UX', impactScore: 5, pointsAtStake: 0, criticalRule: null, label: 'Missing product filters/sort', emailBullet: "Product filters and sorting options are missing or inadequate \u2014 users who can't narrow their search leave faster.", whatsappBullet: "\ud83d\udd0d Missing product filters \u2014 users can't find what they want quickly" }
 };
 
 function scoreFindingsByImpact(issues, data) {
@@ -1435,41 +1441,70 @@ function scoreFindingsByImpact(issues, data) {
 function calculateEstimatedCROScore(issues, data) {
     const mps = data.mobilePS;
     const dps = data.desktopPS;
+    const audited = data.auditedSections || [];
+    const analyticsAudited = issues.some(function(i) { return (FINDING_REGISTRY[i] || {}).category === 'Analytics'; });
+    const seoAudited = issues.some(function(i) { return (FINDING_REGISTRY[i] || {}).category === 'SEO'; });
+
+    // Analytics: full marks if not audited (absence != problem)
     let analytics = 25;
-    if (issues.includes('no_ga4')) analytics -= 5;
-    if (issues.includes('no_ecom_events')) analytics -= 20;
-    else {
-        ['no_view_item_list','no_view_item','no_add_to_cart_event','no_begin_checkout','no_purchase_event'].forEach(e => { if (issues.includes(e)) analytics -= 4; });
+    if (analyticsAudited) {
+        if (issues.includes('no_ga4')) analytics -= 5;
+        if (issues.includes('no_ecom_events')) analytics -= 20;
+        else {
+            ['no_view_item_list','no_view_item','no_add_to_cart_event','no_begin_checkout','no_purchase_event'].forEach(e => { if (issues.includes(e)) analytics -= 4; });
+        }
+        analytics = Math.max(0, analytics);
     }
-    analytics = Math.max(0, analytics);
+    // else: analytics stays at 25 (not audited)
+
+    // Performance: always scored (PageSpeed data is in these PDFs)
     let performance = 15;
-    if (mps !== null) { performance = Math.min(10, Math.round(mps / 10)); if (dps !== null) performance += Math.min(5, Math.round(dps / 20)); else performance += 3; if (!issues.includes('poor_cwv')) performance += 3; performance = Math.min(20, performance); }
-    else if (issues.includes('poor_cwv') || issues.includes('poor_mobile')) performance = 8;
+    if (mps !== null) {
+        performance = Math.min(10, Math.round(mps / 10));
+        if (dps !== null) performance += Math.min(5, Math.round(dps / 20));
+        else performance += 3;
+        if (!issues.includes('poor_cwv')) performance += 3;
+        performance = Math.min(20, performance);
+    } else if (issues.includes('poor_cwv') || issues.includes('poor_mobile')) {
+        performance = 8;
+    }
+
+    // SEO: full marks if not audited
     let seo = 15;
-    if (issues.includes('multiple_h1')) seo -= 3;
-    if (issues.includes('no_meta_desc')) seo -= 2;
-    if (issues.includes('no_canonical')) seo -= 2;
-    if (issues.includes('no_product_schema')) seo -= 3;
-    if (issues.includes('no_breadcrumb_schema')) seo -= 2;
-    if (issues.includes('no_og_tags')) seo -= 1;
-    seo = Math.max(0, seo);
+    if (seoAudited) {
+        if (issues.includes('multiple_h1')) seo -= 3;
+        if (issues.includes('no_meta_desc')) seo -= 2;
+        if (issues.includes('no_canonical')) seo -= 2;
+        if (issues.includes('no_product_schema')) seo -= 3;
+        if (issues.includes('no_breadcrumb_schema')) seo -= 2;
+        if (issues.includes('no_og_tags')) seo -= 1;
+        seo = Math.max(0, seo);
+    }
+
+    // UX: always scored (primary audit focus)
     let ux = 20;
     const uxIssues = issues.filter(i => FINDING_REGISTRY[i]?.category === 'UX');
     ux -= Math.min(14, uxIssues.length * 2);
     ux = Math.max(4, ux);
+
+    // Conversion: always scored
     let conversion = 20;
     const convIssues = issues.filter(i => FINDING_REGISTRY[i]?.category === 'Conversion');
     convIssues.forEach(i => { conversion -= (FINDING_REGISTRY[i]?.pointsAtStake > 0 ? FINDING_REGISTRY[i].pointsAtStake : 1); });
     conversion = Math.max(0, Math.min(20, conversion));
+
     let total = analytics + performance + seo + ux + conversion;
-    const hasEcomGap = issues.includes('no_ecom_events') || (issues.includes('no_ga4'));
+
+    // GA4 cap only applies if analytics was actually audited and GA4 issues were found
+    const hasEcomGap = analyticsAudited && (issues.includes('no_ecom_events') || issues.includes('no_ga4'));
     if (hasEcomGap) total = Math.min(total, 50);
     if (mps !== null && mps < 40) total -= 15;
     total = Math.max(0, Math.min(100, total));
+
     const alerts = [];
     if (hasEcomGap) alerts.push({ type: 'danger', text: 'GA4 ecommerce tracking missing \u2014 overall score capped at 50' });
     if (mps !== null && mps < 40) alerts.push({ type: 'danger', text: 'Mobile PageSpeed below 40 \u2014 15 point deduction applied' });
-    if (issues.includes('multiple_h1')) alerts.push({ type: 'warning', text: 'Multiple H1 tags \u2014 SEO penalty applied' });
+    if (seoAudited && issues.includes('multiple_h1')) alerts.push({ type: 'warning', text: 'Multiple H1 tags \u2014 SEO penalty applied' });
     return { overall: total, analytics, performance, seo, ux, conversion, alerts };
 }
 
@@ -2085,6 +2120,8 @@ async function processUploadedFile(file) {
 
         // Run extraction heuristics
         const findings = extractFindings(extractedText, file.name);
+        // Store findings for later use by generateFromFlowA
+        window._lastExtractedFindings = findings;
 
         updateProgress(90, 'Populating form...');
 
@@ -2168,10 +2205,112 @@ async function parsePPTX(file) {
     return fullText;
 }
 
-// Keyword-based finding extraction
+// Title-to-issue mapping for section-aware extraction
+var TITLE_ISSUE_MAP = [
+    // PDP issues
+    { keywords: ['sticky', 'add to cart'], issue: 'no_sticky_atc' },
+    { keywords: ['sticky', 'atc'], issue: 'no_sticky_atc' },
+    { keywords: ['buy now'], issue: 'no_buy_now' },
+    { keywords: ['wishlist'], issue: 'no_wishlist' },
+    { keywords: ['recently viewed'], issue: 'no_recently_viewed' },
+    { keywords: ['scarcity'], issue: 'no_urgency_pdp' },
+    { keywords: ['urgency'], issue: 'no_urgency_pdp' },
+    { keywords: ['countdown'], issue: 'no_urgency_pdp' },
+    { keywords: ['low stock'], issue: 'no_urgency_pdp' },
+    { keywords: ['limited time'], issue: 'no_urgency_pdp' },
+    { keywords: ['size chart'], issue: 'no_size_chart' },
+    { keywords: ['size guide'], issue: 'no_size_chart' },
+    { keywords: ['image zoom'], issue: 'no_image_zoom' },
+    { keywords: ['pinch', 'zoom'], issue: 'no_image_zoom' },
+    { keywords: ['product video'], issue: 'no_product_video' },
+    { keywords: ['video', 'pdp'], issue: 'no_product_video' },
+    { keywords: ['notify me'], issue: 'no_notify_me' },
+    { keywords: ['back in stock'], issue: 'no_notify_me' },
+    { keywords: ['product badge'], issue: 'no_product_badges' },
+    { keywords: ['review'], issue: 'no_reviews_pdp' },
+    { keywords: ['rating'], issue: 'no_reviews_pdp' },
+    { keywords: ['delivery', 'estimat'], issue: 'no_estimated_delivery' },
+    { keywords: ['delivery', 'date'], issue: 'no_estimated_delivery' },
+    { keywords: ['pincode', 'check'], issue: 'no_estimated_delivery' },
+    { keywords: ['emi'], issue: 'no_emi_bnpl' },
+    { keywords: ['bnpl'], issue: 'no_emi_bnpl' },
+    { keywords: ['buy now pay later'], issue: 'no_emi_bnpl' },
+    { keywords: ['installment'], issue: 'no_emi_bnpl' },
+    // Collection/Category page issues
+    { keywords: ['quick add'], issue: 'no_quick_add' },
+    { keywords: ['quick-add'], issue: 'no_quick_add' },
+    { keywords: ['plp'], issue: 'poor_plp_design' },
+    { keywords: ['product listing'], issue: 'poor_plp_design' },
+    { keywords: ['collection', 'layout'], issue: 'poor_plp_design' },
+    { keywords: ['collection', 'design'], issue: 'poor_plp_design' },
+    { keywords: ['category', 'page', 'design'], issue: 'poor_plp_design' },
+    { keywords: ['filter'], issue: 'no_filters' },
+    { keywords: ['sort'], issue: 'no_filters' },
+    // Cart page issues
+    { keywords: ['cross-sell'], issue: 'no_cross_sell' },
+    { keywords: ['cross sell'], issue: 'no_cross_sell' },
+    { keywords: ['upsell'], issue: 'no_cross_sell' },
+    { keywords: ['up-sell'], issue: 'no_cross_sell' },
+    { keywords: ['you may also like'], issue: 'no_cross_sell' },
+    { keywords: ['frequently bought'], issue: 'no_cross_sell' },
+    { keywords: ['recommendation', 'cart'], issue: 'no_cross_sell' },
+    { keywords: ['recommend', 'cart'], issue: 'no_cross_sell' },
+    { keywords: ['progress bar'], issue: 'no_shipping_bar' },
+    { keywords: ['shipping', 'bar'], issue: 'no_shipping_bar' },
+    { keywords: ['free shipping', 'threshold'], issue: 'no_shipping_bar' },
+    { keywords: ['trust badge'], issue: 'no_trust_badges' },
+    { keywords: ['secure payment'], issue: 'no_trust_badges' },
+    { keywords: ['payment trust'], issue: 'no_trust_badges' },
+    { keywords: ['payment', 'badge'], issue: 'no_trust_badges' },
+    { keywords: ['quantity selector'], issue: 'no_qty_selector' },
+    { keywords: ['quantity', 'increment'], issue: 'no_qty_selector' },
+    { keywords: ['quantity', 'cart'], issue: 'no_qty_selector' },
+    { keywords: ['price summary'], issue: 'poor_cart_summary' },
+    { keywords: ['order summary'], issue: 'poor_cart_summary' },
+    { keywords: ['cart', 'summary', 'clarif'], issue: 'poor_cart_summary' },
+    // Checkout issues
+    { keywords: ['checkout', 'friction'], issue: 'checkout_friction' },
+    { keywords: ['checkout', 'simplif'], issue: 'checkout_friction' },
+    { keywords: ['checkout', 'streamline'], issue: 'checkout_friction' },
+    { keywords: ['guest checkout'], issue: 'no_guest_checkout' },
+    // Homepage issues
+    { keywords: ['social proof'], issue: 'no_social_proof' },
+    { keywords: ['testimonial'], issue: 'no_social_proof' },
+    { keywords: ['value proposition'], issue: 'weak_value_prop' },
+    { keywords: ['hero banner'], issue: 'weak_hero' },
+    { keywords: ['hero', 'cta'], issue: 'weak_hero' },
+    { keywords: ['navigation', 'sticky'], issue: 'no_sticky_nav' },
+    { keywords: ['sticky nav'], issue: 'no_sticky_nav' },
+    { keywords: ['sticky header'], issue: 'no_sticky_nav' },
+    { keywords: ['search bar'], issue: 'no_search' },
+    { keywords: ['search', 'autocomplete'], issue: 'no_search' },
+    { keywords: ['search', 'predictive'], issue: 'no_search' },
+    { keywords: ['announcement bar'], issue: 'no_announcement_bar' },
+    { keywords: ['email capture'], issue: 'no_email_capture' },
+    { keywords: ['newsletter'], issue: 'no_email_capture' },
+    { keywords: ['email subscription'], issue: 'no_email_capture' },
+    // Performance issues (from performance observation slides)
+    { keywords: ['main-thread'], issue: 'slow_mobile' },
+    { keywords: ['main thread', 'work'], issue: 'slow_mobile' },
+    { keywords: ['minimize main'], issue: 'slow_mobile' },
+    { keywords: ['render-blocking'], issue: 'slow_mobile' },
+    { keywords: ['render blocking'], issue: 'slow_mobile' },
+    { keywords: ['code-splitting'], issue: 'slow_mobile' },
+    { keywords: ['code splitting'], issue: 'slow_mobile' },
+    { keywords: ['javascript', 'optimiz'], issue: 'slow_mobile' },
+    { keywords: ['image', 'optimiz'], issue: 'slow_mobile' },
+    { keywords: ['lazy load'], issue: 'slow_mobile' },
+    { keywords: ['offscreen image'], issue: 'slow_mobile' },
+    { keywords: ['unused', 'css'], issue: 'slow_mobile' },
+    { keywords: ['unused', 'javascript'], issue: 'slow_mobile' },
+    { keywords: ['dom size'], issue: 'slow_mobile' },
+    { keywords: ['cache polic'], issue: 'slow_mobile' }
+];
+
+// Section-aware finding extraction
 function extractFindings(text, fileName) {
-    const t = text.toLowerCase();
-    const findings = {
+    var t = text.toLowerCase();
+    var findings = {
         brandName: '',
         websiteUrl: '',
         mobilePS: null,
@@ -2179,23 +2318,78 @@ function extractFindings(text, fileName) {
         industry: '',
         issues: [],
         competitors: [],
+        auditedSections: [],
         rawText: text
     };
 
-    // ---- BRAND NAME EXTRACTION (priority order) ----
+    // ---- STEP 1: Split text into pages/slides ----
+    var pages = [];
+    var pageChunks = text.split(/---\s*(?:PAGE|SLIDE)\s*\d+\s*---/i);
+    var hasMarkers = pageChunks.length > 1;
+    if (hasMarkers) {
+        for (var i = 1; i < pageChunks.length; i++) {
+            pages.push({ num: i, text: pageChunks[i], section: 'INTRO' });
+        }
+    } else {
+        // No markers — treat entire text as one page
+        pages.push({ num: 1, text: text, section: 'INTRO' });
+    }
 
-    // 1. Try filename first (most reliable source)
+    // ---- STEP 2: Classify pages into sections ----
+    var currentSection = 'INTRO';
+    var sectionDividers = [
+        { pattern: /analytics\s+insights/i, section: 'ANALYTICS' },
+        { pattern: /performance\s+insights/i, section: 'PERFORMANCE' },
+        { pattern: /ux\s+insights/i, section: 'UX_OBS' },
+        { pattern: /theme\s+architecture/i, section: 'THEME_OBS' },
+        { pattern: /heuristics?\s+(?:insights?|review)/i, section: 'HEURISTICS_OBS' },
+        { pattern: /proven\s+results/i, section: 'CASE_STUDIES' },
+        { pattern: /we\s+have\s+worked/i, section: 'COMPANY_INFO' },
+        { pattern: /they\s+trust\s+us/i, section: 'COMPANY_INFO' },
+        { pattern: /our\s+leadership/i, section: 'COMPANY_INFO' },
+        { pattern: /our\s+partners/i, section: 'COMPANY_INFO' },
+        { pattern: /we\s+leverage/i, section: 'COMPANY_INFO' },
+        { pattern: /we\s+continue\s+to\s+expand/i, section: 'COMPANY_INFO' },
+        { pattern: /we\s+provide\s+array/i, section: 'COMPANY_INFO' }
+    ];
+    for (var pi = 0; pi < pages.length; pi++) {
+        var pageText = pages[pi].text.trim();
+        // Check if this page is a section divider
+        var isDivider = false;
+        for (var si = 0; si < sectionDividers.length; si++) {
+            if (sectionDividers[si].pattern.test(pageText)) {
+                currentSection = sectionDividers[si].section;
+                isDivider = true;
+                break;
+            }
+        }
+        pages[pi].section = currentSection;
+        pages[pi].isDivider = isDivider;
+    }
+
+    // Track which sections were found
+    var foundSections = new Set();
+    for (var fi = 0; fi < pages.length; fi++) {
+        foundSections.add(pages[fi].section);
+    }
+    if (foundSections.has('PERFORMANCE')) findings.auditedSections.push('performance');
+    if (foundSections.has('UX_OBS')) findings.auditedSections.push('ux');
+    if (foundSections.has('THEME_OBS')) findings.auditedSections.push('theme');
+    if (foundSections.has('HEURISTICS_OBS')) findings.auditedSections.push('heuristics');
+    if (foundSections.has('ANALYTICS')) findings.auditedSections.push('analytics_info');
+
+    // ---- STEP 3: Brand name extraction (unchanged — reliable) ----
     if (fileName) {
-        const fn = fileName.replace(/\.(pdf|pptx|ppt)$/i, '');
-        const fnPatterns = [
+        var fn = fileName.replace(/\.(pdf|pptx|ppt)$/i, '');
+        var fnPatterns = [
             /^(.+?)\s*[-–—]\s*(?:cro|audit|website|conversion|technical)/i,
             /(?:cro|audit|website|conversion|technical).+?[-–—]\s*(.+?)$/i,
             /^(.+?)\s*[-–—]/
         ];
-        for (const p of fnPatterns) {
-            const m = fn.match(p);
+        for (var fp = 0; fp < fnPatterns.length; fp++) {
+            var m = fn.match(fnPatterns[fp]);
             if (m) {
-                const candidate = m[1].trim();
+                var candidate = m[1].trim();
                 if (!/growisto/i.test(candidate) && candidate.length > 1 && candidate.length < 50) {
                     findings.brandName = candidate;
                     break;
@@ -2203,126 +2397,188 @@ function extractFindings(text, fileName) {
             }
         }
     }
-
-    // 2. Try text-based patterns (fallback)
     if (!findings.brandName) {
-        const brandPatterns = [
+        var brandPatterns = [
             /(?:cro\s+audit|audit\s+report|analysis)\s+(?:for\s+|[-–—]\s*)([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/i,
-            /^---\s*(?:PAGE|SLIDE)\s*1\s*---\s*(?:.*?×\s*)?([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/m
+            /^---\s*(?:PAGE|SLIDE)\s*1\s*---\s*(?:.*?[\u00d7×]\s*)?([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/m,
+            /GROWISTO\s*[\u00d7×]\s*([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/
         ];
-        for (const p of brandPatterns) {
-            const m = text.match(p);
-            if (m) {
-                const candidate = m[1].trim();
-                if (!/^growisto$/i.test(candidate)) {
-                    findings.brandName = candidate;
-                    break;
-                }
+        for (var bp = 0; bp < brandPatterns.length; bp++) {
+            var bm = text.match(brandPatterns[bp]);
+            if (bm) {
+                var bc = bm[1].trim();
+                if (!/^growisto$/i.test(bc)) { findings.brandName = bc; break; }
             }
         }
     }
-
-    // 3. Frequency-based fallback: find most-mentioned proper noun
     if (!findings.brandName) {
-        const stopWords = new Set(['the','and','for','are','but','not','you','all','can','had','her','was','one','our','out','has','its','this','that','with','will','from','they','been','have','many','some','them','than','each','make','like','long','look','very','after','into','more','also','most','want','what','your','when','just','make','know','back','only','come','could','same','over','take','other','about','should','would','which','there','their','these','those','being','through','where','before','between','under','again','page','slide','audit','cro','shopify','website','mobile','desktop','google','analytics','speed','score','above','below','using','present','missing','recommended','add','implement','ensure','improve','update','current','status','data','growisto']);
-        const words = text.match(/[A-Z][a-zA-Z']+(?:\s+[A-Z][a-zA-Z']+)*/g) || [];
-        const freq = {};
-        for (const w of words) {
-            const wl = w.toLowerCase();
-            if (wl.length > 2 && !stopWords.has(wl) && !/growisto/i.test(w)) {
-                freq[w] = (freq[w] || 0) + 1;
+        var stopWords = new Set(['the','and','for','are','but','not','you','all','can','had','her','was','one','our','out','has','its','this','that','with','will','from','they','been','have','many','some','them','than','each','make','like','long','look','very','after','into','more','also','most','want','what','your','when','just','make','know','back','only','come','could','same','over','take','other','about','should','would','which','there','their','these','those','being','through','where','before','between','under','again','page','slide','audit','cro','shopify','website','mobile','desktop','google','analytics','speed','score','above','below','using','present','missing','recommended','add','implement','ensure','improve','update','current','status','data','growisto','observation','recommendation','conversion','strategy','roadmap','implementation','growth','technical']);
+        var words = text.match(/[A-Z][a-zA-Z']+(?:\s+[A-Z][a-zA-Z']+)*/g) || [];
+        var freq = {};
+        for (var wi = 0; wi < words.length; wi++) {
+            var wl = words[wi].toLowerCase();
+            if (wl.length > 2 && !stopWords.has(wl) && !/growisto/i.test(words[wi])) {
+                freq[words[wi]] = (freq[words[wi]] || 0) + 1;
             }
         }
-        let bestWord = '', bestCount = 0;
-        for (const [w, c] of Object.entries(freq)) {
-            if (c > bestCount && c >= 3) { bestWord = w; bestCount = c; }
+        var bestWord = '', bestCount = 0;
+        for (var fw in freq) {
+            if (freq[fw] > bestCount && freq[fw] >= 3) { bestWord = fw; bestCount = freq[fw]; }
         }
         if (bestWord) findings.brandName = bestWord;
     }
-
-    // Final safety: never use Growisto as brand name
     if (findings.brandName && /^growisto$/i.test(findings.brandName.trim())) {
         findings.brandName = '';
     }
 
-    // Extract PageSpeed scores
-    const mobileSpeedMatch = text.match(/mobile\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i)
-        || text.match(/(\d{1,3})\s*(?:mobile\s*(?:page\s*speed|pagespeed|speed))/i);
-    if (mobileSpeedMatch) findings.mobilePS = parseInt(mobileSpeedMatch[1]);
-
-    const desktopSpeedMatch = text.match(/desktop\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i)
-        || text.match(/(\d{1,3})\s*(?:desktop\s*(?:page\s*speed|pagespeed|speed))/i);
-    if (desktopSpeedMatch) findings.desktopPS = parseInt(desktopSpeedMatch[1]);
-
-    // Extract website URL (exclude growisto domains)
-    const urlMatches = text.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.(?:com|in|co\.in|io|net|org))/gi);
-    if (urlMatches) {
-        const nonGrowisto = urlMatches.find(u => !/growisto/i.test(u));
-        if (nonGrowisto) findings.websiteUrl = nonGrowisto.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+    // ---- STEP 4: PageSpeed extraction (PERFORMANCE section only) ----
+    var perfText = '';
+    for (var psi = 0; psi < pages.length; psi++) {
+        if (pages[psi].section === 'PERFORMANCE') perfText += '\n' + pages[psi].text;
+    }
+    // Also include INTRO pages for cases where performance data is on early pages
+    var introText = '';
+    for (var ini = 0; ini < pages.length; ini++) {
+        if (pages[ini].section === 'INTRO') introText += '\n' + pages[ini].text;
+    }
+    var psSearchText = hasMarkers ? perfText : text;
+    if (psSearchText) {
+        // Specific "Score: XX/100" format from PDF performance boxes
+        var mpsMatch = psSearchText.match(/mobile\s+performance[\s\S]{0,200}?score[:\s]*(\d{1,2})\/100/i);
+        if (!mpsMatch) mpsMatch = psSearchText.match(/score[:\s]*(\d{1,2})\/100[\s\S]{0,50}?mobile/i);
+        if (!mpsMatch) mpsMatch = psSearchText.match(/mobile\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i);
+        if (!mpsMatch) mpsMatch = psSearchText.match(/(\d{1,2})\/100[\s\S]{0,100}?mobile/i);
+        if (mpsMatch) {
+            var mpsVal = parseInt(mpsMatch[1]);
+            if (mpsVal > 0 && mpsVal < 100) findings.mobilePS = mpsVal;
+        }
+        var dpsMatch = psSearchText.match(/desktop\s+performance[\s\S]{0,200}?score[:\s]*(\d{1,2})\/100/i);
+        if (!dpsMatch) dpsMatch = psSearchText.match(/score[:\s]*(\d{1,2})\/100[\s\S]{0,50}?desktop/i);
+        if (!dpsMatch) dpsMatch = psSearchText.match(/desktop\s*(?:page\s*speed|pagespeed|psi|speed\s*score)[:\s]*(\d{1,3})/i);
+        if (!dpsMatch) dpsMatch = psSearchText.match(/(\d{1,2})\/100[\s\S]{0,100}?desktop/i);
+        if (dpsMatch) {
+            var dpsVal = parseInt(dpsMatch[1]);
+            if (dpsVal > 0 && dpsVal < 100) findings.desktopPS = dpsVal;
+        }
+        // Also try competition table: brand name row with mobile page speed score
+        if (!findings.mobilePS && findings.brandName) {
+            var brandLc = findings.brandName.toLowerCase();
+            var compTableMatch = psSearchText.match(new RegExp(brandLc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s\\S]{0,100}?(\\d{1,2})(?:\\s|$)', 'i'));
+            if (compTableMatch) {
+                var ctVal = parseInt(compTableMatch[1]);
+                if (ctVal > 0 && ctVal < 100) findings.mobilePS = ctVal;
+            }
+        }
     }
 
-    // Detect industry
+    // ---- STEP 5: URL extraction (INTRO + PERFORMANCE sections only) ----
+    var urlSearchText = hasMarkers ? (introText + '\n' + perfText) : text;
+    // Prefer URL that matches brand name
+    var brandSlug = findings.brandName ? findings.brandName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    var allUrls = urlSearchText.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.(?:com|in|co\.in|io|net|org|co)(?:\/[^\s]*)?)/gi) || [];
+    var brandUrl = null;
+    var firstNonGrowistoUrl = null;
+    for (var ui = 0; ui < allUrls.length; ui++) {
+        var cleanUrl = allUrls[ui].replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/+$/, '');
+        if (/growisto/i.test(cleanUrl)) continue;
+        if (!firstNonGrowistoUrl) firstNonGrowistoUrl = cleanUrl;
+        if (brandSlug && cleanUrl.toLowerCase().replace(/[^a-z0-9]/g, '').includes(brandSlug)) {
+            brandUrl = cleanUrl;
+            break;
+        }
+    }
+    findings.websiteUrl = brandUrl || firstNonGrowistoUrl || '';
+
+    // ---- STEP 6: Industry detection (full text) ----
     if (t.includes('skincare') || t.includes('beauty') || t.includes('cosmetic') || t.includes('skin care')) findings.industry = 'skincare';
     else if (t.includes('fashion') || t.includes('apparel') || t.includes('clothing')) findings.industry = 'fashion';
-    else if (t.includes('electronics') || t.includes('gadget')) findings.industry = 'electronics';
-    else if (t.includes('health') || t.includes('wellness') || t.includes('supplement')) findings.industry = 'health';
-    else if (t.includes('food') || t.includes('beverage')) findings.industry = 'food';
+    else if (t.includes('electronics') || t.includes('gadget') || t.includes('earbuds') || t.includes('headphone') || t.includes('speaker')) findings.industry = 'electronics';
+    else if (t.includes('health') || t.includes('wellness') || t.includes('supplement') || t.includes('ayurved') || t.includes('pharma')) findings.industry = 'health';
+    else if (t.includes('food') || t.includes('beverage') || t.includes('coffee') || t.includes('tea') || t.includes('chai')) findings.industry = 'food';
     else if (t.includes('jewel') || t.includes('accessor')) findings.industry = 'jewelry';
+    else if (t.includes('water') || t.includes('filter') || t.includes('purif')) findings.industry = 'home';
+    else if (t.includes('motorcycle') || t.includes('auto') || t.includes('bike')) findings.industry = 'automotive';
 
-    // Issue detection via keywords
-    const issueMap = {
-        'no_sticky_atc': ['sticky', 'add to cart', 'atc'].filter(k => t.includes(k)).length >= 2
-            || t.includes('sticky add to cart') || t.includes('sticky atc')
-            || (t.includes('add to cart') && (t.includes('not sticky') || t.includes('is not sticky'))),
-        'no_buy_now': t.includes('buy now') && (t.includes('missing') || t.includes('no ') || t.includes('add a') || t.includes('does not offer')),
-        'no_wishlist': t.includes('wishlist') && (t.includes('missing') || t.includes('no ') || t.includes('does not') || t.includes('add an')),
-        'no_recently_viewed': t.includes('recently viewed') && (t.includes('missing') || t.includes('no ') || t.includes('do not feature') || t.includes('add a')),
-        'no_product_badges': t.includes('badge') && (t.includes('missing') || t.includes('no ') || t.includes('product badge')),
-        'no_notify_me': t.includes('notify me') || (t.includes('sold') && t.includes('out') && (t.includes('notify') || t.includes('alert'))),
-        'no_quick_add': t.includes('quick add') || t.includes('quick-add'),
-        'no_cross_sell': (t.includes('cross-sell') || t.includes('cross sell') || t.includes('upsell') || t.includes('up-sell'))
-            && (t.includes('missing') || t.includes('no ') || t.includes('recommend')),
-        'no_shipping_bar': t.includes('shipping') && t.includes('bar') && (t.includes('progress') || t.includes('free')),
-        'no_trust_badges': t.includes('trust') && t.includes('badge'),
-        'no_social_proof': t.includes('social proof') && (t.includes('missing') || t.includes('no ')),
-        'no_reviews_pdp': t.includes('review') && (t.includes('missing') || t.includes('no customer')),
-        'no_image_zoom': t.includes('zoom') && t.includes('image'),
-        'no_product_video': t.includes('product video') && (t.includes('missing') || t.includes('no ')),
-        'no_ga4': t.includes('ga4') && (t.includes('not installed') || t.includes('missing') || t.includes('not found')),
-        'no_ecom_events': t.includes('ecommerce event') && (t.includes('not firing') || t.includes('missing') || t.includes('not set up')),
-        'multiple_h1': t.includes('multiple h1') || t.includes('h1 tag') && t.includes('multiple'),
-        'no_product_schema': t.includes('schema') && (t.includes('product') || t.includes('json-ld') || t.includes('structured data'))
-            && (t.includes('missing') || t.includes('implement') || t.includes('no ')),
-        'no_meta_desc': t.includes('meta description') && (t.includes('missing') || t.includes('stale') || t.includes('update') || t.includes('replace')),
-        'poor_cwv': t.includes('core web vital') && (t.includes('fail') || t.includes('poor')),
-        'checkout_friction': t.includes('checkout') && (t.includes('friction') || t.includes('too many step')),
-        'no_urgency_pdp': t.includes('urgency') && (t.includes('missing') || t.includes('no ')),
-        'no_size_chart': t.includes('size chart') && (t.includes('missing') || t.includes('no ')),
-        'no_sticky_nav': t.includes('sticky nav') || (t.includes('navigation') && t.includes('sticky'))
-    };
+    // ---- STEP 7: Section-aware issue detection ----
+    var issueSet = new Set();
+    var observationSections = ['UX_OBS', 'THEME_OBS', 'HEURISTICS_OBS', 'PERFORMANCE'];
 
-    for (const [issue, detected] of Object.entries(issueMap)) {
-        if (detected) findings.issues.push(issue);
+    // Helper: match text against TITLE_ISSUE_MAP
+    function matchIssuesFromText(txt) {
+        var tl = txt.toLowerCase();
+        var matched = [];
+        for (var mi = 0; mi < TITLE_ISSUE_MAP.length; mi++) {
+            var entry = TITLE_ISSUE_MAP[mi];
+            var allMatch = true;
+            for (var ki = 0; ki < entry.keywords.length; ki++) {
+                if (!tl.includes(entry.keywords[ki])) { allMatch = false; break; }
+            }
+            if (allMatch) matched.push(entry.issue);
+        }
+        return matched;
     }
 
-    // Also check for meta description specific patterns from Re'equil report
-    if (t.includes('pinch') && t.includes('zoom')) findings.issues.push('no_image_zoom');
-    if (t.includes('redundant') && (t.includes('tool') || t.includes('script'))) {
-        // Note about consolidation needed
-    }
-    if (t.includes('font') && t.includes('declaration') && t.includes('redundant')) {
-        // Performance issue noted
+    if (hasMarkers) {
+        // Section-aware: only scan observation section pages
+        for (var oi = 0; oi < pages.length; oi++) {
+            var pg = pages[oi];
+            if (observationSections.indexOf(pg.section) === -1) continue;
+            if (pg.isDivider) continue;
+
+            // Extract "title" — first significant line (> 20 chars, not just a label)
+            var lines = pg.text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 15; });
+            var title = lines.length > 0 ? lines[0] : '';
+
+            // Pass 1: Match title
+            var titleMatches = matchIssuesFromText(title);
+            for (var ti = 0; ti < titleMatches.length; ti++) {
+                issueSet.add(titleMatches[ti]);
+            }
+
+            // Pass 2: If title didn't match, scan observation text
+            if (titleMatches.length === 0) {
+                // Extract text between "Observation" and "Recommendation" headers
+                var obsMatch = pg.text.match(/observations?[\s\S]*?(?=recommendations?|recommendation\/hypothesis|$)/i);
+                var obsText = obsMatch ? obsMatch[0] : '';
+                // Also try the "(Issue/observation)" format from performance slides
+                if (!obsText || obsText.length < 30) {
+                    var issueObsMatch = pg.text.match(/\(issue\/observation\)[\s\S]*?(?=recommendation|$)/i);
+                    if (issueObsMatch) obsText = issueObsMatch[0];
+                }
+                if (obsText && obsText.length > 20) {
+                    var obsMatches = matchIssuesFromText(obsText);
+                    for (var omi = 0; omi < obsMatches.length; omi++) {
+                        issueSet.add(obsMatches[omi]);
+                    }
+                }
+                // Pass 3: Also try full page text for shorter pages (Theme Architecture detail slides)
+                if (titleMatches.length === 0 && obsText.length < 30 && pg.text.length < 500) {
+                    var fullMatches = matchIssuesFromText(pg.text);
+                    for (var fmi = 0; fmi < fullMatches.length; fmi++) {
+                        issueSet.add(fullMatches[fmi]);
+                    }
+                }
+            }
+        }
+    } else {
+        // No markers — fallback: scan full text with keyword matching (minus GA4/SEO)
+        var fallbackMatches = matchIssuesFromText(text);
+        for (var fbi = 0; fbi < fallbackMatches.length; fbi++) {
+            issueSet.add(fallbackMatches[fbi]);
+        }
     }
 
-    // Extract competitor names
-    const competitorPatterns = [
-        /vs\.?\s+([A-Z][a-zA-Z]+)/g,
-        /(?:competitor|compared?\s+to|versus)\s+([A-Z][a-zA-Z]+)/gi
-    ];
-    const knownBrands = ['Nykaaman', 'Nykaa', 'Dermaco', 'WOW', 'Mamaearth', 'Minimalist', 'Plum', 'mCaffeine',
-        'Sugar', 'Lakme', 'Biotique', 'Khadi', 'Forest Essentials', 'Kama Ayurveda'];
-    for (const brand of knownBrands) {
-        if (t.includes(brand.toLowerCase())) findings.competitors.push(brand);
+    // Convert Set to array
+    findings.issues = Array.from(issueSet);
+
+    // ---- STEP 8: Competitor extraction ----
+    var knownBrands = ['Nykaaman', 'Nykaa', 'Dermaco', 'WOW', 'Mamaearth', 'Minimalist', 'Plum', 'mCaffeine',
+        'Sugar', 'Lakme', 'Biotique', 'Khadi', 'Forest Essentials', 'Kama Ayurveda', 'Boat', 'JBL', 'Pebble',
+        'VPLAK', 'Access', 'Noise', 'boAt', 'Pilgrim', 'Kaya'];
+    for (var bi = 0; bi < knownBrands.length; bi++) {
+        if (t.includes(knownBrands[bi].toLowerCase()) && findings.brandName.toLowerCase() !== knownBrands[bi].toLowerCase()) {
+            findings.competitors.push(knownBrands[bi]);
+        }
     }
 
     return findings;
@@ -2373,6 +2629,7 @@ function showExtractionSummary(findings) {
 
 // Generate from Flow A verification form
 function generateFromFlowA() {
+    var lastFindings = window._lastExtractedFindings || {};
     const data = window._lastGeneratedData = {
         brandName: document.getElementById('va_brandName').value.trim() || '[Brand Name]',
         websiteUrl: document.getElementById('va_websiteUrl').value.trim(),
@@ -2383,6 +2640,7 @@ function generateFromFlowA() {
         industry: document.getElementById('va_industry').value,
         competitorInsights: document.getElementById('va_competitorInsights').value.trim(),
         additionalNotes: document.getElementById('va_additionalNotes').value.trim(),
+        auditedSections: lastFindings.auditedSections || [],
         issues: []
     };
 
@@ -2436,6 +2694,8 @@ function resetFlowA() {
     document.getElementById('extractedSummary').classList.remove('visible');
     document.getElementById('uploadZone').style.display = 'block';
     document.getElementById('fileInput').value = '';
+    // Clear stored findings
+    window._lastExtractedFindings = null;
     // Clear ranked issue list and hide supporting elements
     var rankedList = document.getElementById('rankedIssueList');
     if (rankedList) rankedList.textContent = '';
