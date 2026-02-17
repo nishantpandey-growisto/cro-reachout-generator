@@ -1270,6 +1270,26 @@ function getClientNames() {
     return DEFAULT_CLIENT_NAMES;
 }
 
+function getClientNamesForIndustry(industry) {
+    // Check localStorage override first
+    try {
+        const data = JSON.parse(localStorage.getItem('cro_reachout_data'));
+        if (data && data.clientNames && data.clientNames.length > 0) return data.clientNames;
+    } catch(e) {}
+    // Industry-specific brand pools for relevant social proof
+    const pools = {
+        skincare: ['Pilgrim', 'Kaya Clinic', 'Kama Ayurveda', 'OZiva', 'Ubeauty'],
+        fashion: ['Bewakoof', 'Nobero', 'Freakins', 'Powerlook', 'PUMA India'],
+        electronics: ['Atomberg', 'Boat', 'TyresNmore'],
+        health: ['Kaya Clinic', 'Kama Ayurveda', 'OZiva', 'Pathkind Labs'],
+        food: ['Monsoon Harvest', 'OZiva', 'Atomberg'],
+        jewelry: ['Pilgrim', 'Kama Ayurveda', 'Kaya Clinic'],
+        home: ['Atomberg', 'TyresNmore', 'Powerlook'],
+        automotive: ['TyresNmore', 'Atomberg']
+    };
+    return pools[industry] || DEFAULT_CLIENT_NAMES;
+}
+
 // ============================================
 // DATA COLLECTION
 // ============================================
@@ -1840,37 +1860,48 @@ function generateFindingBullets(data, forWhatsApp) {
 // ============================================
 function generateEmail(data) {
     const bullets = generateSmartBullets(data, false);
-    const clientNames = getClientNames();
+    const industryNames = getClientNamesForIndustry(data.industry);
     const brandType = data.websiteUrl ? data.brandName + '\'s Shopify store' : data.brandName + '\'s store';
+    const score = data.issues.length > 0 ? calculateEstimatedCROScore(data.issues, data) : null;
 
     const subject = 'Quick CRO wins I spotted on ' + data.brandName + '\'s store';
 
     let bulletText = '';
     bullets.forEach(b => { bulletText += '\u2022 ' + b + '\n\n'; });
 
+    // Score-adaptive opener
+    let opener;
+    if (!score) {
+        opener = 'I took a quick look at ' + brandType + ' and spotted a few things that could improve your conversion numbers:';
+    } else if (score.overall < 40) {
+        opener = 'I took a quick look at ' + brandType + ' and spotted some critical gaps that are likely costing significant revenue:';
+    } else if (score.overall < 60) {
+        opener = 'I took a quick look at ' + brandType + ' and spotted a few high-impact opportunities that could meaningfully move your conversion numbers:';
+    } else {
+        opener = 'I took a quick look at ' + brandType + ' and spotted some quick wins that could push your results even further:';
+    }
+
+    // Score-adaptive revenue claim
+    let revenueClaim;
+    if (!score || score.overall < 40) {
+        revenueClaim = '50-70%';
+    } else if (score.overall < 60) {
+        revenueClaim = '30-50%';
+    } else {
+        revenueClaim = '15-25%';
+    }
+
     const body = `Hi ${data.recipientName},
 
-${data.issues.length > 0 ? ((() => { const s = calculateEstimatedCROScore(data.issues, data); return s.overall < 40 ? 'I took a quick look at ' + brandType + ' and spotted some critical gaps that are likely costing significant revenue:' : s.overall < 60 ? 'I took a quick look at ' + brandType + ' and spotted a few high-impact opportunities that could meaningfully move your conversion numbers:' : 'I took a quick look at ' + brandType + ' and spotted some quick wins that could push your results even further:'; })()) : 'I took a quick look at ' + brandType + ' and spotted a few things that could improve your conversion numbers:'}
+${opener}
 
 ${bulletText.trim()}
 
-A bit about us:
+At Growisto, our team of conversion specialists has helped brands such as ${industryNames.slice(0, 4).join(', ')}, and others grow their website conversions & revenue through a systematic conversion-led development methodology. We dig into your GA4 data, identify exactly where users are dropping off, and then build and ship the fixes — speed, UX, checkout flows, mobile experience.
 
-At Growisto, we're a CRO-led Shopify development team — not just auditors. We dig into your GA4 data, identify exactly where users are dropping off, and then build and ship the fixes. Speed, UX, checkout flows, mobile experience — we own the entire journey from insight to implementation.
+These insights and more can help you increase revenue by ${revenueClaim} with no ad spend growth. Let's jump on a quick 30-minute call to walk through these observations and our approach.
 
-Some recent results across 750+ projects:
-${getTopCaseStudiesForIssues(data.issues).map(s => '→ ' + s.statHeadline + ' — ' + s.emailSnippet).join('\n')}
-
-We've worked with brands like ${clientNames.join(', ')}, and more.
-
-To see if there's a fit, I'd love to understand:
-
-1. What's your primary focus right now — growing traffic, improving conversions, or increasing AOV?
-2. Are you currently tracking where users drop off in the funnel?
-
-Either way, happy to jump on a quick 15-minute call to walk through these observations and share how we've tackled similar challenges.
-
-Let me know what works — I've also attached a short deck with more on our approach and results.
+Let me know what works — I've also attached the findings in a deck with more on our approach and results.
 
 Best,
 ${data.senderName}`;
@@ -1883,10 +1914,21 @@ ${data.senderName}`;
 // ============================================
 function generateWhatsApp(data) {
     const bullets = generateSmartBullets(data, true);
-    const clientNames = getClientNames();
+    const industryNames = getClientNamesForIndustry(data.industry);
+    const score = data.issues.length > 0 ? calculateEstimatedCROScore(data.issues, data) : null;
 
     let bulletText = '';
     bullets.forEach(b => { bulletText += b + '\n'; });
+
+    // Score-adaptive revenue claim
+    let revenueClaim;
+    if (!score || score.overall < 40) {
+        revenueClaim = '50-70%';
+    } else if (score.overall < 60) {
+        revenueClaim = '30-50%';
+    } else {
+        revenueClaim = '15-25%';
+    }
 
     const msg = `Hi ${data.recipientName} 👋
 
@@ -1894,9 +1936,9 @@ I was looking at ${data.brandName}'s store and noticed a few quick wins that cou
 
 ${bulletText.trim()}
 
-We're Growisto — a CRO-focused Shopify dev team. ${(() => { const top = getTopCaseStudiesForIssues(data.issues); return 'We\'ve driven results like ' + top.map(s => s.statHeadline + ' for ' + s.clientName).join(', ') + '.'; })()}
+At Growisto, we've helped brands like ${industryNames.slice(0, 3).join(', ')} grow conversions & revenue through systematic CRO.
 
-Happy to do a quick 15-min walkthrough of what we found and how we've solved similar issues for brands like ${clientNames.slice(0, 3).join(', ')}, and more.
+These insights can help increase revenue by ${revenueClaim} with no ad spend growth. Happy to do a quick 30-min walkthrough of what we found.
 
 Would that be useful? 🙂
 
