@@ -186,6 +186,14 @@
         .form-textarea { min-height: 100px; resize: vertical; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
+        /* CLIENT TYPE TOGGLE */
+        .client-type-toggle { display: flex; gap: 4px; background: var(--color-bg-secondary); padding: 4px; border-radius: 10px; width: fit-content; }
+        .client-type-btn { padding: 8px 20px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-family); color: var(--color-text-muted); transition: all var(--transition-fast); }
+        .client-type-btn.active { background: var(--color-bg-primary); color: var(--color-primary); box-shadow: var(--shadow-sm); font-weight: 600; }
+        .client-type-btn:hover:not(.active) { color: var(--color-text-dark); }
+        .exclient-hint { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; display: none; }
+        .exclient-hint.visible { display: block; }
+
         /* CHECKBOXES */
         .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .checkbox-item {
@@ -615,6 +623,14 @@
                     <option value="other">Other</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label class="form-label">Client Type</label>
+                <div class="client-type-toggle" id="vaClientTypeToggle">
+                    <button type="button" class="client-type-btn active" onclick="setClientType('new', this, 'va')">New Prospect</button>
+                    <button type="button" class="client-type-btn" onclick="setClientType('exclient', this, 'va')">Ex-Client</button>
+                </div>
+                <div class="exclient-hint" id="vaExclientHint">Messages will use a warm, relationship-based tone.</div>
+            </div>
 
             <h4 style="margin:24px 0 12px;">Detected CRO Issues</h4>
             <p class="form-hint" style="margin-bottom:8px;">Ranked by impact. Top 4 pre-selected for your message. Select 3-5 issues.</p>
@@ -710,6 +726,14 @@
                     <option value="jewelry">Jewelry & Accessories</option>
                     <option value="other">Other</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Client Type</label>
+                <div class="client-type-toggle" id="clientTypeToggle">
+                    <button type="button" class="client-type-btn active" onclick="setClientType('new', this)">New Prospect</button>
+                    <button type="button" class="client-type-btn" onclick="setClientType('exclient', this)">Ex-Client</button>
+                </div>
+                <div class="exclient-hint" id="exclientHint">Messages will use a warm, relationship-based tone.</div>
             </div>
             <div class="form-nav">
                 <div></div>
@@ -1291,6 +1315,27 @@ function getClientNamesForIndustry(industry) {
 }
 
 // ============================================
+// CLIENT TYPE TOGGLE
+// ============================================
+window._clientType = 'new';
+window._vaClientType = 'new';
+
+function setClientType(type, btn, prefix) {
+    const toggle = btn.parentElement;
+    toggle.querySelectorAll('.client-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (prefix === 'va') {
+        window._vaClientType = type;
+        const hint = document.getElementById('vaExclientHint');
+        if (hint) hint.classList.toggle('visible', type === 'exclient');
+    } else {
+        window._clientType = type;
+        const hint = document.getElementById('exclientHint');
+        if (hint) hint.classList.toggle('visible', type === 'exclient');
+    }
+}
+
+// ============================================
 // DATA COLLECTION
 // ============================================
 function collectFormData() {
@@ -1304,6 +1349,7 @@ function collectFormData() {
         industry: document.getElementById('industry').value,
         competitorInsights: document.getElementById('competitorInsights').value.trim(),
         additionalNotes: document.getElementById('additionalNotes').value.trim(),
+        clientType: window._clientType || 'new',
         issues: []
     };
 
@@ -1869,7 +1915,39 @@ function generateEmail(data) {
     let bulletText = '';
     bullets.forEach(b => { bulletText += '\u2022 ' + b + '\n\n'; });
 
-    // Score-adaptive opener
+    // Score-adaptive revenue claim (shared by both paths)
+    let revenueClaim;
+    if (!score || score.overall < 40) {
+        revenueClaim = '50-70%';
+    } else if (score.overall < 60) {
+        revenueClaim = '30-50%';
+    } else {
+        revenueClaim = '15-25%';
+    }
+
+    // --- EX-CLIENT EMAIL ---
+    if (data.clientType === 'exclient') {
+        const body = `Hi ${data.recipientName},
+
+How are you? It has been a long time since we last connected. I hope you are well.
+
+I took a quick look at ${brandType} and spotted a few high-impact opportunities that could meaningfully move your conversion numbers:
+
+${bulletText.trim()}
+
+It has been some time since we last worked to revamp the website to make it conversion-friendly, and as time has passed, further upgrades are necessary. Our team has looked into your website and identified key areas of action that we should be working on to increase the conversion rate & revenue by ${revenueClaim} with no ad spend growth.
+
+Let's jump on a quick 30-minute call to walk through these observations and our approach.
+
+Let me know what works. Happy to adjust as per your schedule.
+
+Best,
+${data.senderName}`;
+
+        return { subject, body };
+    }
+
+    // --- NEW PROSPECT EMAIL ---
     let opener;
     if (!score) {
         opener = 'I took a quick look at ' + brandType + ' and spotted a few things that could improve your conversion numbers:';
@@ -1879,16 +1957,6 @@ function generateEmail(data) {
         opener = 'I took a quick look at ' + brandType + ' and spotted a few high-impact opportunities that could meaningfully move your conversion numbers:';
     } else {
         opener = 'I took a quick look at ' + brandType + ' and spotted some quick wins that could push your results even further:';
-    }
-
-    // Score-adaptive revenue claim
-    let revenueClaim;
-    if (!score || score.overall < 40) {
-        revenueClaim = '50-70%';
-    } else if (score.overall < 60) {
-        revenueClaim = '30-50%';
-    } else {
-        revenueClaim = '15-25%';
     }
 
     const body = `Hi ${data.recipientName},
@@ -1930,6 +1998,26 @@ function generateWhatsApp(data) {
         revenueClaim = '15-25%';
     }
 
+    // --- EX-CLIENT WHATSAPP ---
+    if (data.clientType === 'exclient') {
+        const msg = `Hi ${data.recipientName} 👋
+
+Long time! Hope you're doing well.
+
+I was looking at ${data.brandName}'s store and noticed a few things that could meaningfully move your conversion numbers:
+
+${bulletText.trim()}
+
+Since we last worked together on the website, there are some new areas worth addressing. These can help increase revenue by ${revenueClaim} with no ad spend growth.
+
+Happy to do a quick 30-min walkthrough. Let me know what works 🙂
+
+— ${data.senderName}`;
+
+        return msg;
+    }
+
+    // --- NEW PROSPECT WHATSAPP ---
     const msg = `Hi ${data.recipientName} 👋
 
 I was looking at ${data.brandName}'s store and noticed a few quick wins that could meaningfully move your conversion numbers:
@@ -1964,6 +2052,103 @@ function generateFollowUpSequence(data) {
     else if (data.issues.includes('no_ga4')) dataPoint = 'no GA4 ecommerce tracking in place';
     else if (data.issues.includes('no_sticky_atc')) dataPoint = 'no sticky Add to Cart on mobile';
 
+    // --- EX-CLIENT FOLLOW-UP SEQUENCE ---
+    if (data.clientType === 'exclient') {
+        return [
+            {
+                title: 'Message 1: Warm Re-engagement',
+                timing: 'Day 0 (Initial)',
+                email: `Hi ${recipientName},
+
+How are you? It has been a long time since we last connected. I hope you are well.
+
+I took a quick look at ${brandName}'s store and spotted a few high-impact opportunities that could meaningfully move your conversion numbers.
+
+It has been some time since we last worked together, and as time has passed, further upgrades are necessary. Our team has identified key areas that could help increase conversion rates & revenue with no ad spend growth.
+
+Let's jump on a quick 30-minute call to walk through these observations and our approach.
+
+Let me know what works. Happy to adjust as per your schedule.
+
+Best,
+${senderName}`,
+                whatsapp: `Hi ${recipientName} 👋
+
+Long time! Hope you're doing well.
+
+Had a look at ${brandName}'s store — noticed a few high-impact opportunities since we last worked together. Some good areas to push conversions further.
+
+Free for a quick 30-min chat? Let me know what works 🙂
+
+— ${senderName}`
+            },
+            {
+                title: 'Message 2: Findings Deck Follow-Up',
+                timing: 'Day 3-5',
+                email: `Hi ${recipientName},
+
+Just circling back on my last note. I've put together a short deck with the specific findings from ${brandName}'s store — the areas where we see the most room to move the needle.
+
+Given our past work together, I think you'll find the recommendations quite actionable. Happy to walk through it whenever convenient.
+
+Best,
+${senderName}`,
+                whatsapp: `Hi ${recipientName} 👋
+
+Following up on my last message. I've put together a quick deck with the findings from ${brandName}'s store.
+
+Given our past work together, I think you'll find it useful. Want me to send it over? 🙂
+
+— ${senderName}`
+            },
+            {
+                title: 'Message 3: Testimonial / Recent Results',
+                timing: 'Day 7-10',
+                email: `Hi ${recipientName},
+
+Wanted to share a quick update from our side — we recently helped [Client Name] achieve [specific result, e.g., "a 46% conversion rate lift"] through a focused CRO sprint similar to what we'd recommend for ${brandName}.
+
+The approach was straightforward: identify the top 5 conversion blockers, prioritize by impact, and ship fixes fast. The kind of work we know well from our time together.
+
+If this sounds relevant, happy to compare notes.
+
+Best,
+${senderName}`,
+                whatsapp: `Hi ${recipientName} 👋
+
+Quick update — we recently helped [Client Name] hit [specific result] with a focused CRO sprint.
+
+Same approach we know from working together — find the top blockers, fix them fast.
+
+Thought ${brandName} could benefit similarly. Worth a chat? 🙂
+
+— ${senderName}`
+            },
+            {
+                title: 'Message 4: Gentle Close',
+                timing: 'Day 14-21',
+                email: `Hi ${recipientName},
+
+I realize the timing might not be right, so I don't want to keep following up if this isn't a priority right now.
+
+If improving ${brandName}'s conversion rates is something you'd like to revisit later, I'm always happy to pick the conversation back up. You know where to find us.
+
+Wishing you all the best!
+
+Warm regards,
+${senderName}`,
+                whatsapp: `Hi ${recipientName} 👋
+
+Totally understand if the timing isn't right. Just wanted to let you know — whenever ${brandName}'s conversion optimization becomes a priority again, happy to pick this up.
+
+All the best! 🙏
+
+— ${senderName}`
+            }
+        ];
+    }
+
+    // --- NEW PROSPECT FOLLOW-UP SEQUENCE ---
     const messages = [
         {
             title: 'Message 1: Data Point Lead',
@@ -2682,6 +2867,7 @@ function generateFromFlowA() {
         industry: document.getElementById('va_industry').value,
         competitorInsights: document.getElementById('va_competitorInsights').value.trim(),
         additionalNotes: document.getElementById('va_additionalNotes').value.trim(),
+        clientType: window._vaClientType || 'new',
         auditedSections: lastFindings.auditedSections || [],
         issues: []
     };
@@ -2750,6 +2936,12 @@ function resetFlowA() {
     document.querySelectorAll('#verifyForm input[type="text"], #verifyForm input[type="number"]').forEach(inp => inp.value = '');
     document.querySelectorAll('#verifyForm textarea').forEach(ta => ta.value = '');
     document.getElementById('va_industry').selectedIndex = 0;
+    // Reset client type toggle
+    window._vaClientType = 'new';
+    var vaToggle = document.getElementById('vaClientTypeToggle');
+    if (vaToggle) { vaToggle.querySelectorAll('.client-type-btn').forEach(function(b, i) { b.classList.toggle('active', i === 0); }); }
+    var vaHint = document.getElementById('vaExclientHint');
+    if (vaHint) vaHint.classList.remove('visible');
 }
 
 // ============================================
@@ -3140,7 +3332,8 @@ function saveToHistory() {
         createdDate: now,
         lastUpdated: now,
         notes: data.additionalNotes || '',
-        competitorInsights: data.competitorInsights || ''
+        competitorInsights: data.competitorInsights || '',
+        clientType: data.clientType || 'new'
     };
 
     // Save initial messages
